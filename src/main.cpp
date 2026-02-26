@@ -18,7 +18,7 @@ namespace fs = std::filesystem;
 
 int main(int argc, char* argv[]) {
     CLI::App app{"CMake project generator for bare-metal embedded systems"};
-    app.footer("Metadata file can be JSON or YAML. Use --default-json to generate a template.");
+    app.footer("Metadata file must be JSON. Use --default-json to generate a template.");
 
     std::string metadata_file;
     std::string output_dir = "./output";
@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     bool validate_only = false;
     bool dry_run = false;
 
-    app.add_option("metadata,-m,--metadata", metadata_file, "Metadata file (JSON or YAML)")
+    app.add_option("metadata,-m,--metadata", metadata_file, "Metadata file (JSON)")
         ->required(false);
 
     app.add_option("-o,--output", output_dir, "Output directory for scaffolded project")

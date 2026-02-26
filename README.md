@@ -1,6 +1,6 @@
 # CMakeGen – CMake Project Generator for Bare-Metal Embedded Systems
 
-A C++ tool that generates a complete CMake project from JSON or YAML metadata. It supports multi-SOC, multi-ISA heterogeneous cores, multiple toolchains, CMake Presets, and Conan dependencies. Ideal for embedded projects targeting ARM, RISC-V, or other bare-metal platforms.
+A C++ tool that generates a complete CMake project from JSON metadata. It supports multi-SOC, multi-ISA heterogeneous cores, multiple toolchains, CMake Presets, and Conan dependencies. Ideal for embedded projects targeting ARM, RISC-V, or other bare-metal platforms.
 
 ---
 
@@ -102,15 +102,6 @@ cmake -B build -S . -G Ninja -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake
 cmake --build build
 ```
 
-### Optional: YAML support
-
-To use YAML metadata files (`.yaml` / `.yml`) in addition to JSON:
-
-```bash
-cmake -B build -S . -G Ninja -DCMAKEGEN_USE_YAML=ON
-cmake --build build
-```
-
 ---
 
 ## Running CMakeGen
@@ -125,7 +116,7 @@ cmake --build build
 
 | Option | Short | Description |
 |--------|-------|-------------|
-| `metadata` | `-m`, `--metadata` | Path to metadata file (JSON or YAML) |
+| `metadata` | `-m`, `--metadata` | Path to metadata file (JSON) |
 | `--output` | `-o` | Output directory for generated project (default: `./output`) |
 | `--validate-only` | — | Validate metadata without generating |
 | `--dry-run` | — | Print actions without executing |
@@ -166,6 +157,7 @@ CMakeGen produces:
 | Output | Description |
 |--------|-------------|
 | `CMakeLists.txt` | Root project file with `add_subdirectory` for top-level layers |
+| `cmake/` | CMake helper modules (e.g. `AddHierarchicalLibrary.cmake`) |
 | `conanfile.txt` | Conan requires (external components + tool_requires) |
 | `CMakePresets.json` | Configure and build presets for each combination |
 | `toolchains/` | Toolchain `.cmake` files |
@@ -487,8 +479,8 @@ Defines how CMake Presets are generated from board × SOC × ISA × build varian
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `dimensions` | array | Yes | Dimensions to expand (e.g. `["board", "soc", "isa_variant", "build_variant"]`) |
-| `naming` | string | Yes | Preset name pattern, e.g. `"{board}_{soc}_{isa}_{variant}"` |
-| `binary_dir_pattern` | string | Yes | Build dir pattern, e.g. `"build/${preset}"` |
+| `naming` | string | No | Preset name pattern (default: `"{board}_{soc}_{isa}_{variant}"`) |
+| `binary_dir_pattern` | string | No | Build dir pattern (default: `"build/${preset}"`) |
 | `exclude` | array | No | Exclude specific combinations |
 | `exclude[].board` | string | No | Exclude presets for this board |
 | `exclude[].soc` | string | No | Exclude presets for this SOC |

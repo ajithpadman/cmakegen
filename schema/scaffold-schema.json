@@ -2,15 +2,12 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "CMakeGen Metadata",
   "type": "object",
-  "required": [
-    "project",
-    "source_tree",
-    "preset_matrix"
-  ],
+  "required": ["project", "source_tree", "preset_matrix"],
   "properties": {
     "schema_version": {
       "type": "integer",
-      "default": 1
+      "default": 1,
+      "description": "Schema version for future compatibility"
     },
     "env": {
       "type": "object",
@@ -18,69 +15,35 @@
       "description": "User-defined variables for ${VAR} expansion. Lookup: env first, then system."
     },
     "project": {
-      "type": "object",
-      "required": [
-        "name",
-        "version"
-      ],
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        },
-        "cmake_minimum": {
-          "type": "object",
-          "properties": {
-            "major": {
-              "type": "integer"
-            },
-            "minor": {
-              "type": "integer"
-            },
-            "patch": {
-              "type": "integer"
-            }
-          }
-        }
-      }
+      "$ref": "#/definitions/project"
     },
     "socs": {
       "type": "array",
-      "items": {
-        "$ref": "#/definitions/soc"
-      }
+      "items": { "$ref": "#/definitions/soc" }
     },
     "boards": {
       "type": "array",
-      "items": {
-        "$ref": "#/definitions/board"
-      }
+      "items": { "$ref": "#/definitions/board" }
     },
     "toolchains": {
       "type": "array",
-      "items": {
-        "$ref": "#/definitions/toolchain"
-      }
+      "items": { "$ref": "#/definitions/toolchain" }
     },
     "isa_variants": {
-      "type": "array"
+      "type": "array",
+      "items": { "$ref": "#/definitions/isa_variant" }
     },
     "build_variants": {
-      "type": "array"
+      "type": "array",
+      "items": { "$ref": "#/definitions/build_variant" }
     },
     "source_tree": {
       "type": "object",
-      "required": [
-        "components"
-      ],
+      "required": ["components"],
       "properties": {
         "components": {
           "type": "array",
-          "items": {
-            "$ref": "#/definitions/component"
-          }
+          "items": { "$ref": "#/definitions/component" }
         }
       }
     },
@@ -89,215 +52,244 @@
       "properties": {
         "tool_requires": {
           "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "items": { "type": "string" }
         },
         "extra_requires": {
           "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "items": { "type": "string" }
         }
       }
     },
     "preset_matrix": {
-      "type": "object",
-      "required": [
-        "dimensions",
-        "naming",
-        "binary_dir_pattern"
-      ],
-      "properties": {
-        "dimensions": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "exclude": {
-          "type": "array"
-        },
-        "naming": {
-          "type": "string"
-        },
-        "binary_dir_pattern": {
-          "type": "string"
-        }
-      }
+      "$ref": "#/definitions/preset_matrix"
     }
   },
   "definitions": {
+    "project": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "cmake_minimum": {
+          "type": "object",
+          "properties": {
+            "major": { "type": "integer" },
+            "minor": { "type": "integer" },
+            "patch": { "type": "integer" }
+          }
+        }
+      }
+    },
     "soc": {
       "type": "object",
-      "required": [
-        "id"
-      ],
+      "required": ["id"],
       "properties": {
-        "id": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9_-]+$"
-        },
-        "display_name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "display_name": { "type": "string" },
+        "description": { "type": "string" },
         "isas": {
           "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "items": { "type": "string" }
         }
       }
     },
     "board": {
       "type": "object",
-      "required": [
-        "id",
-        "socs"
-      ],
+      "required": ["id", "socs"],
       "properties": {
-        "id": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9_-]+$"
-        },
-        "display_name": {
-          "type": "string"
-        },
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "display_name": { "type": "string" },
         "socs": {
           "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "items": { "type": "string" }
         },
         "defines": {
           "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "items": { "type": "string" }
         }
+      }
+    },
+    "compiler": {
+      "type": "object",
+      "properties": {
+        "c": { "type": "string" },
+        "cxx": { "type": "string" },
+        "asm": { "type": "string" }
       }
     },
     "toolchain": {
       "type": "object",
-      "required": [
-        "id"
-      ],
+      "required": ["id"],
       "properties": {
-        "id": {
-          "type": "string"
-        },
-        "display_name": {
-          "type": "string"
-        },
-        "compiler": {
-          "type": "object"
-        },
+        "id": { "type": "string" },
+        "display_name": { "type": "string" },
+        "compiler": { "$ref": "#/definitions/compiler" },
         "flags": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
         },
         "libs": {
-          "type": "array"
+          "type": "array",
+          "items": { "type": "string" }
         },
         "lib_paths": {
-          "type": "array"
+          "type": "array",
+          "items": { "type": "string" }
         },
         "defines": {
-          "type": "array"
+          "type": "array",
+          "items": { "type": "string" }
         },
-        "sysroot": {
-          "type": "string"
+        "sysroot": { "type": "string" }
+      }
+    },
+    "isa_variant": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "toolchain": { "type": "string" },
+        "display_name": { "type": "string" }
+      }
+    },
+    "build_variant": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "flags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "remove_flags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "add_flags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "inherits": { "type": "string" }
+      }
+    },
+    "path_filters": {
+      "type": "object",
+      "properties": {
+        "exclude_paths": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "include_paths": {
+          "type": "array",
+          "items": { "type": "string" }
         }
       }
     },
-    "component": {
+    "preset_exclude": {
       "type": "object",
-      "required": [
-        "id",
-        "type"
-      ],
       "properties": {
-        "id": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9_-]+$"
-        },
-        "type": {
-          "enum": [
-            "executable",
-            "library",
-            "external",
-            "variant",
-            "layer"
-          ]
-        },
-        "library_type": {
-          "enum": [
-            "static",
-            "shared",
-            "interface"
-          ]
-        },
-        "structure": {
-          "type": "string"
-        },
-        "source": {
-          "type": "string"
-        },
-        "dest": {
-          "type": "string"
-        },
-        "filters": {
-          "type": "object"
-        },
-        "source_extensions": {
-          "type": "array"
-        },
-        "include_extensions": {
-          "type": "array"
-        },
-        "dependencies": {
+        "board": { "type": "string" },
+        "soc": { "type": "string" },
+        "isa_variant": { "type": "string" },
+        "build_variant": { "type": "string" }
+      }
+    },
+    "preset_matrix": {
+      "type": "object",
+      "required": ["dimensions"],
+      "properties": {
+        "dimensions": {
           "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "items": { "type": "string" }
         },
-        "conan_ref": {
-          "type": "string"
-        },
-        "variations": {
-          "type": "array"
-        },
-        "subdirs": {
+        "exclude": {
           "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "items": { "$ref": "#/definitions/preset_exclude" }
         },
-        "git": {
-          "$ref": "#/definitions/git_source"
-        }
+        "naming": { "type": "string" },
+        "binary_dir_pattern": { "type": "string" }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "properties": {
+        "default": { "type": "boolean" },
+        "var": { "type": "string" },
+        "op": { "type": "string", "enum": ["equals", "in", "not_in"] },
+        "value": {}
+      }
+    },
+    "variation": {
+      "type": "object",
+      "required": ["subdir", "condition"],
+      "properties": {
+        "subdir": { "type": "string" },
+        "condition": { "$ref": "#/definitions/condition" }
       }
     },
     "git_source": {
       "type": "object",
-      "required": [
-        "url"
-      ],
+      "required": ["url"],
       "properties": {
-        "url": {
-          "type": "string"
+        "url": { "type": "string" },
+        "tag": { "type": "string" },
+        "branch": { "type": "string" },
+        "commit": { "type": "string" }
+      }
+    },
+    "component": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "type": {
+          "type": "string",
+          "enum": ["executable", "library", "external", "variant", "layer"]
         },
-        "tag": {
-          "type": "string"
+        "library_type": {
+          "type": "string",
+          "enum": ["static", "shared", "interface"]
         },
-        "branch": {
-          "type": "string"
+        "structure": { "type": "string" },
+        "source": { "type": "string" },
+        "dest": { "type": "string" },
+        "filters": { "$ref": "#/definitions/path_filters" },
+        "source_extensions": {
+          "type": "array",
+          "items": { "type": "string" }
         },
-        "commit": {
-          "type": "string"
-        }
+        "include_extensions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "dependencies": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "conan_ref": { "type": "string" },
+        "variations": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/variation" }
+        },
+        "subdirs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "git": { "$ref": "#/definitions/git_source" }
       }
     }
   }
