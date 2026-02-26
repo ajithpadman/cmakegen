@@ -226,11 +226,26 @@
     },
     "condition": {
       "type": "object",
+      "description": "Leaf: var/op/value or default. Compound: and, or, not (recursive).",
       "properties": {
-        "default": { "type": "boolean" },
-        "var": { "type": "string" },
+        "default": { "type": "boolean", "description": "Fallback when no other condition matches" },
+        "var": { "type": "string", "description": "Variable name (e.g. SOC, BOARD, ISA_VARIANT, BUILD_VARIANT)" },
         "op": { "type": "string", "enum": ["equals", "in", "not_in"] },
-        "value": {}
+        "value": {},
+        "and": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/condition" },
+          "description": "All sub-conditions must be true"
+        },
+        "or": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/condition" },
+          "description": "At least one sub-condition must be true"
+        },
+        "not": {
+          "$ref": "#/definitions/condition",
+          "description": "Negates the sub-condition"
+        }
       }
     },
     "variation": {

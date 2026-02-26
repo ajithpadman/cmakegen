@@ -563,10 +563,31 @@ Conditional subdirectory selection. Copies a source tree that contains multiple 
 
 **Condition format:**
 
+Conditions can be leaf predicates or compound expressions using `and`, `or`, and `not` (recursive).
+
+*Leaf conditions:*
 - `{ "default": true }` — fallback when no other condition matches
 - `{ "var": "SOC", "op": "equals", "value": "stm32h7" }`
 - `{ "var": "SOC", "op": "in", "value": ["stm32h7", "stm32g4"] }`
 - `{ "var": "SOC", "op": "not_in", "value": ["riscv32"] }`
+
+*Compound conditions:*
+- `{ "and": [ cond1, cond2, ... ] }` — all sub-conditions must be true
+- `{ "or": [ cond1, cond2, ... ] }` — at least one sub-condition must be true
+- `{ "not": cond }` — negates the sub-condition
+
+**Example (compound):**
+```json
+{
+  "subdir": "stm32_uart",
+  "condition": {
+    "and": [
+      { "var": "SOC", "op": "in", "value": ["stm32h7", "stm32g4"] },
+      { "not": { "var": "BUILD_VARIANT", "op": "equals", "value": "release" } }
+    ]
+  }
+}
+```
 
 Available variables: `SOC`, `BOARD`, `ISA_VARIANT`, `BUILD_VARIANT` (from CMake Presets).
 
