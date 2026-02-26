@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION {{ cmake_minimum.major }}.{{ cmake_minimum.minor }})
+project({{ project.name }} VERSION {{ project.version }} LANGUAGES C CXX ASM)
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/AddHierarchicalLibrary.cmake)
+
+# Preset variables (set by CMakePresets) - reference to avoid "unused variable" warning
+message(STATUS "Configuration: BOARD=${BOARD} SOC=${SOC} ISA_VARIANT=${ISA_VARIANT} BUILD_VARIANT=${BUILD_VARIANT}")
+
+{% for subdir in subdirs %}
+add_subdirectory({{ subdir }})
+{% endfor %}

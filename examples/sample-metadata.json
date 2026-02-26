@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "project": {
+    "name": "embedded_app",
+    "version": "0.1.0",
+    "cmake_minimum": {"major": 3, "minor": 23, "patch": 0}
+  },
+  "socs": [
+    {
+      "id": "stm32h7",
+      "display_name": "STM32H7 Series",
+      "description": "Cortex-M7 based",
+      "isas": ["cortex-m7"]
+    }
+  ],
+  "boards": [
+    {
+      "id": "nucleo-h743zi",
+      "display_name": "Nucleo-H743ZI",
+      "socs": ["stm32h7"],
+      "defines": ["BOARD_NUCLEO_H743"]
+    }
+  ],
+  "toolchains": [
+    {
+      "id": "arm-gcc-m7",
+      "display_name": "ARM GCC for Cortex-M7",
+      "compiler": {"c": "arm-none-eabi-gcc", "cxx": "arm-none-eabi-g++", "asm": "arm-none-eabi-gcc"},
+      "flags": {
+        "c": ["-mcpu=cortex-m7", "-mthumb"],
+        "cxx": ["-mcpu=cortex-m7", "-mthumb"],
+        "asm": ["-mcpu=cortex-m7", "-mthumb"],
+        "linker": ["-mcpu=cortex-m7", "-mthumb", "-specs=nano.specs"]
+      },
+      "libs": ["c", "nosys"],
+      "lib_paths": [],
+      "defines": ["ARM_MATH_CM7"],
+      "sysroot": "/opt/arm-none-eabi"
+    }
+  ],
+  "isa_variants": [
+    {"id": "cortex-m7", "toolchain": "arm-gcc-m7", "display_name": "Cortex-M7"}
+  ],
+  "build_variants": [
+    {"id": "debug", "flags": {"c": ["-g", "-O0"], "cxx": ["-g", "-O0"]}},
+    {"id": "release", "flags": {"c": ["-O3", "-DNDEBUG"], "cxx": ["-O3", "-DNDEBUG"]}}
+  ],
+  "source_tree": {
+    "components": [
+      {"id": "freertos", "type": "external", "conan_ref": "freertos/11.0.1"},
+      {"id": "hal", "type": "library", "library_type": "static", "source": ".", "dest": "platform/drivers/hal", "filters": {"exclude_paths": ["test"], "include_paths": ["src"]}, "source_extensions": ["*.c", "*.cpp"], "include_extensions": ["*.h"], "dependencies": []},
+      {"id": "drivers_layer", "type": "layer", "dest": "platform/drivers", "subdirs": ["hal"], "dependencies": []},
+      {"id": "platform_layer", "type": "layer", "dest": "platform", "subdirs": ["drivers_layer"], "dependencies": []},
+      {"id": "main_app", "type": "executable", "source": ".", "dest": "apps/main_app", "source_extensions": ["*.c", "*.cpp"], "include_extensions": ["*.h"], "dependencies": ["hal"]},
+      {"id": "apps_layer", "type": "layer", "dest": "apps", "subdirs": ["main_app"], "dependencies": []},
+      {"id": "root_layer", "type": "layer", "dest": ".", "subdirs": ["platform_layer", "apps_layer"], "dependencies": []}
+    ]
+  },
+  "dependencies": {"tool_requires": ["cmake/3.28.0"], "extra_requires": []},
+  "preset_matrix": {
+    "dimensions": ["board", "soc", "isa_variant", "build_variant"],
+    "exclude": [],
+    "naming": "{board}_{soc}_{isa}_{variant}",
+    "binary_dir_pattern": "build/${preset}"
+  }
+}

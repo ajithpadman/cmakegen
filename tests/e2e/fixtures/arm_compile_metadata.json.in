@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "project": {
+    "name": "arm_compile_test",
+    "version": "0.1.0",
+    "cmake_minimum": {"major": 3, "minor": 23, "patch": 0}
+  },
+  "socs": [
+    {"id": "stm32h7", "display_name": "STM32H7", "description": "Cortex-M7", "isas": ["cortex-m7"]}
+  ],
+  "boards": [
+    {"id": "nucleo-h743zi", "display_name": "Nucleo-H743ZI", "socs": ["stm32h7"], "defines": ["BOARD_NUCLEO_H743"]}
+  ],
+  "toolchains": [
+    {
+      "id": "arm-gcc-m7",
+      "display_name": "ARM GCC Cortex-M7",
+      "compiler": {
+        "c": "/usr/bin/arm-none-eabi-gcc",
+        "cxx": "/usr/bin/arm-none-eabi-g++",
+        "asm": "/usr/bin/arm-none-eabi-gcc"
+      },
+      "flags": {
+        "c": ["-mcpu=cortex-m7", "-mthumb"],
+        "cxx": ["-mcpu=cortex-m7", "-mthumb"],
+        "asm": ["-mcpu=cortex-m7", "-mthumb"],
+        "linker": ["-mcpu=cortex-m7", "-mthumb", "-specs=nano.specs"]
+      },
+      "libs": ["c", "nosys"],
+      "lib_paths": [],
+      "defines": ["ARM_MATH_CM7"],
+      "sysroot": ""
+    }
+  ],
+  "isa_variants": [
+    {"id": "cortex-m7", "toolchain": "arm-gcc-m7", "display_name": "Cortex-M7"}
+  ],
+  "build_variants": [
+    {"id": "debug", "flags": {"c": ["-g", "-O0"], "cxx": ["-g", "-O0"]}}
+  ],
+  "source_tree": {
+    "components": [
+      {
+        "id": "hal",
+        "type": "library",
+        "library_type": "static",
+        "source": "@DUMMY_SOURCES_DIR@",
+        "dest": "platform/drivers/hal",
+        "filters": {"exclude_paths": []},
+        "source_extensions": ["*.c", "*.cpp"],
+        "include_extensions": ["*.h"],
+        "dependencies": []
+      },
+      {
+        "id": "uart_driver",
+        "type": "variant",
+        "source": "@DUMMY_SOURCES_DIR@",
+        "dest": "platform/drivers/uart_driver",
+        "variations": [
+          {"subdir": "stm32_uart", "condition": {"var": "SOC", "op": "in", "value": ["stm32h7"]}},
+          {"subdir": "generic_uart", "condition": {"default": true}}
+        ],
+        "dependencies": ["hal"]
+      },
+      {
+        "id": "drivers_layer",
+        "type": "layer",
+        "dest": "platform/drivers",
+        "subdirs": ["hal", "uart_driver"],
+        "dependencies": []
+      },
+      {
+        "id": "platform_layer",
+        "type": "layer",
+        "dest": "platform",
+        "subdirs": ["drivers_layer"],
+        "dependencies": []
+      },
+      {
+        "id": "main_app",
+        "type": "executable",
+        "source": "@DUMMY_SOURCES_DIR@",
+        "dest": "apps/main_app",
+        "filters": {"exclude_paths": ["stm32_uart", "generic_uart"]},
+        "source_extensions": ["*.c", "*.cpp"],
+        "include_extensions": ["*.h"],
+        "dependencies": ["hal"]
+      },
+      {
+        "id": "apps_layer",
+        "type": "layer",
+        "dest": "apps",
+        "subdirs": ["main_app"],
+        "dependencies": []
+      },
+      {
+        "id": "root_layer",
+        "type": "layer",
+        "dest": ".",
+        "subdirs": ["platform_layer", "apps_layer"],
+        "dependencies": []
+      }
+    ]
+  },
+  "dependencies": {"tool_requires": ["cmake/3.28.0"], "extra_requires": []},
+  "preset_matrix": {
+    "dimensions": ["board", "soc", "isa_variant", "build_variant"],
+    "exclude": [],
+    "naming": "{board}_{soc}_{isa}_{variant}",
+    "binary_dir_pattern": "build/${preset}"
+  }
+}

@@ -1,0 +1,13 @@
+[requires]
+{% for ref in conan_requires %}
+{{ ref }}
+{% endfor %}
+
+[tool_requires]
+{% for tr in tool_requires %}
+{{ tr }}
+{% endfor %}
+
+[generators]
+CMakeDeps
+CMakeToolchain

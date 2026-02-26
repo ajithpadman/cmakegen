@@ -1,0 +1,9 @@
+{% for v in variations %}
+{% if loop.is_first %}if({{ v.condition_cmake }})
+{% else %}elseif({{ v.condition_cmake }})
+{% endif %}
+    add_subdirectory({{ v.subdir }})
+{% endfor %}
+else()
+    message(FATAL_ERROR "No matching variant for {{ id }}")
+endif()

@@ -1,0 +1,413 @@
+{
+  "schema_version": 1,
+  "project": {
+    "name": "embedded_full_e2e",
+    "version": "0.1.0",
+    "cmake_minimum": {
+      "major": 3,
+      "minor": 23,
+      "patch": 0
+    }
+  },
+  "socs": [
+    {
+      "id": "stm32h7",
+      "display_name": "STM32H7",
+      "description": "Cortex-M7",
+      "isas": ["cortex-m7"]
+    },
+    {
+      "id": "stm32g4",
+      "display_name": "STM32G4",
+      "description": "Cortex-M4F",
+      "isas": ["cortex-m4"]
+    },
+    {
+      "id": "gd32vf103",
+      "display_name": "GD32VF103",
+      "description": "RISC-V",
+      "isas": ["riscv32"]
+    }
+  ],
+  "boards": [
+    {
+      "id": "nucleo-h743zi",
+      "display_name": "Nucleo-H743ZI",
+      "socs": [
+        "stm32h7"
+      ],
+      "defines": [
+        "BOARD_NUCLEO_H743"
+      ]
+    },
+    {
+      "id": "nucleo-g474re",
+      "display_name": "Nucleo-G474RE",
+      "socs": [
+        "stm32g4"
+      ],
+      "defines": [
+        "BOARD_NUCLEO_G474"
+      ]
+    },
+    {
+      "id": "longan-nano",
+      "display_name": "Longan Nano",
+      "socs": [
+        "gd32vf103"
+      ],
+      "defines": [
+        "BOARD_LONGAN_NANO"
+      ]
+    },
+    {
+      "id": "dual-soc-carrier",
+      "display_name": "Dual-SOC Carrier",
+      "socs": [
+        "stm32h7",
+        "stm32g4"
+      ],
+      "defines": [
+        "BOARD_DUAL_SOC"
+      ]
+    }
+  ],
+  "toolchains": [
+    {
+      "id": "arm-gcc-m7",
+      "display_name": "ARM GCC Cortex-M7",
+      "compiler": {
+        "c": "/usr/bin/arm-none-eabi-gcc",
+        "cxx": "/usr/bin/arm-none-eabi-g++",
+        "asm": "/usr/bin/arm-none-eabi-gcc"
+      },
+      "flags": {
+        "c": [
+          "-mcpu=cortex-m7",
+          "-mthumb"
+        ],
+        "cxx": [
+          "-mcpu=cortex-m7",
+          "-mthumb"
+        ],
+        "asm": [
+          "-mcpu=cortex-m7",
+          "-mthumb"
+        ],
+        "linker": [
+          "-mcpu=cortex-m7",
+          "-mthumb",
+          "-specs=nano.specs"
+        ]
+      },
+      "libs": [
+        "c",
+        "nosys"
+      ],
+      "lib_paths": [],
+      "defines": [
+        "ARM_MATH_CM7"
+      ],
+      "sysroot": ""
+    },
+    {
+      "id": "arm-gcc-m4",
+      "display_name": "ARM GCC Cortex-M4",
+      "compiler": {
+        "c": "/usr/bin/arm-none-eabi-gcc",
+        "cxx": "/usr/bin/arm-none-eabi-g++",
+        "asm": "/usr/bin/arm-none-eabi-gcc"
+      },
+      "flags": {
+        "c": [
+          "-mcpu=cortex-m4",
+          "-mthumb",
+          "-mfpu=fpv4-sp-d16"
+        ],
+        "cxx": [
+          "-mcpu=cortex-m4",
+          "-mthumb",
+          "-mfpu=fpv4-sp-d16"
+        ],
+        "asm": [
+          "-mcpu=cortex-m4",
+          "-mthumb"
+        ],
+        "linker": [
+          "-mcpu=cortex-m4",
+          "-mthumb",
+          "-specs=nano.specs"
+        ]
+      },
+      "libs": [
+        "c",
+        "nosys"
+      ],
+      "lib_paths": [],
+      "defines": [
+        "ARM_MATH_CM4"
+      ],
+      "sysroot": ""
+    },
+    {
+      "id": "riscv-gcc",
+      "display_name": "RISC-V GCC",
+      "compiler": {
+        "c": "riscv64-unknown-elf-gcc",
+        "cxx": "riscv64-unknown-elf-g++",
+        "asm": "riscv64-unknown-elf-gcc"
+      },
+      "flags": {
+        "c": [
+          "-march=rv32imac",
+          "-mabi=ilp32"
+        ],
+        "cxx": [
+          "-march=rv32imac",
+          "-mabi=ilp32"
+        ],
+        "asm": [
+          "-march=rv32imac",
+          "-mabi=ilp32"
+        ],
+        "linker": [
+          "-march=rv32imac",
+          "-mabi=ilp32",
+          "-specs=nano.specs"
+        ]
+      },
+      "libs": [
+        "c",
+        "nosys"
+      ],
+      "lib_paths": [],
+      "defines": [],
+      "sysroot": "/opt/riscv"
+    }
+  ],
+  "isa_variants": [
+    {
+      "id": "cortex-m7",
+      "toolchain": "arm-gcc-m7",
+      "display_name": "Cortex-M7"
+    },
+    {
+      "id": "cortex-m4",
+      "toolchain": "arm-gcc-m4",
+      "display_name": "Cortex-M4"
+    },
+    {
+      "id": "riscv32",
+      "toolchain": "riscv-gcc",
+      "display_name": "RISC-V32"
+    }
+  ],
+  "build_variants": [
+    {
+      "id": "debug",
+      "flags": {
+        "c": [
+          "-g",
+          "-O0"
+        ],
+        "cxx": [
+          "-g",
+          "-O0"
+        ]
+      }
+    },
+    {
+      "id": "release",
+      "flags": {
+        "c": [
+          "-O3",
+          "-DNDEBUG"
+        ],
+        "cxx": [
+          "-O3",
+          "-DNDEBUG"
+        ]
+      }
+    }
+  ],
+  "source_tree": {
+    "components": [
+      {
+        "id": "lwip",
+        "type": "external",
+        "conan_ref": "lwip/2.1.2"
+      },
+      {
+        "id": "hal",
+        "type": "library",
+        "library_type": "static",
+        "source": "@DUMMY_SOURCES_DIR@",
+        "dest": "platform/drivers/hal",
+        "filters": {
+          "exclude_paths": []
+        },
+        "source_extensions": [
+          "*.c",
+          "*.cpp"
+        ],
+        "include_extensions": [
+          "*.h"
+        ],
+        "dependencies": []
+      },
+      {
+        "id": "freertos_kernel",
+        "type": "library",
+        "library_type": "static",
+        "structure": "hierarchical",
+        "git": {
+          "url": "https://github.com/FreeRTOS/FreeRTOS-Kernel.git",
+          "tag": "V11.0.1"
+        },
+        "dest": "platform/rtos/freertos_kernel",
+        "filters": {
+          "exclude_paths": [
+            "test",
+            "Demo",
+            "TraceRecorder"
+          ],
+          "include_paths": []
+        },
+        "source_extensions": [
+          "*.c"
+        ],
+        "include_extensions": [
+          "*.h"
+        ],
+        "dependencies": [
+          "hal"
+        ]
+      },
+      {
+        "id": "uart_driver",
+        "type": "variant",
+        "source": "@DUMMY_SOURCES_DIR@",
+        "dest": "platform/drivers/uart_driver",
+        "variations": [
+          {
+            "subdir": "stm32_uart",
+            "condition": {
+              "var": "SOC",
+              "op": "in",
+              "value": [
+                "stm32h7",
+                "stm32g4"
+              ]
+            }
+          },
+          {
+            "subdir": "generic_uart",
+            "condition": {
+              "default": true
+            }
+          }
+        ],
+        "dependencies": [
+          "hal"
+        ]
+      },
+      {
+        "id": "drivers_layer",
+        "type": "layer",
+        "dest": "platform/drivers",
+        "subdirs": [
+          "hal",
+          "uart_driver"
+        ],
+        "dependencies": []
+      },
+      {
+        "id": "rtos_layer",
+        "type": "layer",
+        "dest": "platform/rtos",
+        "subdirs": [
+          "freertos_kernel"
+        ],
+        "dependencies": []
+      },
+      {
+        "id": "platform_layer",
+        "type": "layer",
+        "dest": "platform",
+        "subdirs": [
+          "drivers_layer",
+          "rtos_layer"
+        ],
+        "dependencies": []
+      },
+      {
+        "id": "main_app",
+        "type": "executable",
+        "source": "@DUMMY_SOURCES_DIR@",
+        "dest": "apps/main_app",
+        "source_extensions": [
+          "*.c",
+          "*.cpp"
+        ],
+        "include_extensions": [
+          "*.h"
+        ],
+        "dependencies": [
+          "hal",
+          "uart_driver",
+          "freertos_kernel",
+          "lwip"
+        ]
+      },
+      {
+        "id": "apps_layer",
+        "type": "layer",
+        "dest": "apps",
+        "subdirs": [
+          "main_app"
+        ],
+        "dependencies": []
+      },
+      {
+        "id": "root_layer",
+        "type": "layer",
+        "dest": ".",
+        "subdirs": [
+          "platform_layer",
+          "apps_layer"
+        ],
+        "dependencies": []
+      }
+    ]
+  },
+  "dependencies": {
+    "tool_requires": [
+      "cmake/3.28.0"
+    ],
+    "extra_requires": []
+  },
+  "preset_matrix": {
+    "dimensions": [
+      "board",
+      "soc",
+      "isa_variant",
+      "build_variant"
+    ],
+    "exclude": [
+      {
+        "board": "nucleo-h743zi",
+        "isa_variant": "cortex-m4"
+      },
+      {
+        "board": "nucleo-g474re",
+        "isa_variant": "cortex-m7"
+      },
+      {
+        "board": "longan-nano",
+        "isa_variant": "cortex-m7"
+      }
+    ],
+    "naming": "{board}_{soc}_{isa}_{variant}",
+    "binary_dir_pattern": "build/${preset}"
+  }
+}

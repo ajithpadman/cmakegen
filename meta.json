@@ -1,0 +1,89 @@
+{
+  "boards": [
+    {
+      "defines": [],
+      "display_name": "",
+      "id": "",
+      "socs": []
+    }
+  ],
+  "build_variants": [
+    {
+      "flags": {},
+      "id": "debug"
+    },
+    {
+      "flags": {},
+      "id": "release"
+    }
+  ],
+  "dependencies": {
+    "extra_requires": [],
+    "tool_requires": []
+  },
+  "env": {},
+  "isa_variants": [
+    {
+      "display_name": "",
+      "id": "",
+      "toolchain": ""
+    }
+  ],
+  "preset_matrix": {
+    "binary_dir_pattern": "build/${preset}",
+    "dimensions": [
+      "board",
+      "soc",
+      "isa_variant",
+      "build_variant"
+    ],
+    "exclude": [],
+    "naming": "{board}_{soc}_{isa}_{variant}"
+  },
+  "project": {
+    "cmake_minimum": {
+      "major": 3,
+      "minor": 23,
+      "patch": 0
+    },
+    "name": "",
+    "version": "0.1.0"
+  },
+  "schema_version": 1,
+  "socs": [
+    {
+      "description": "",
+      "display_name": "",
+      "id": "",
+      "isas": []
+    }
+  ],
+  "source_tree": {
+    "components": [
+      {
+        "dependencies": [],
+        "dest": "",
+        "id": "",
+        "library_type": "static",
+        "source": "",
+        "type": "library"
+      }
+    ]
+  },
+  "toolchains": [
+    {
+      "compiler": {
+        "asm": "",
+        "c": "",
+        "cxx": ""
+      },
+      "defines": [],
+      "display_name": "",
+      "flags": {},
+      "id": "",
+      "lib_paths": [],
+      "libs": [],
+      "sysroot": ""
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "project": {"name": "e2e_test", "version": "0.1"},
+  "socs": [],
+  "boards": [],
+  "toolchains": [],
+  "isa_variants": [],
+  "build_variants": [],
+  "source_tree": {"components": []},
+  "dependencies": {},
+  "preset_matrix": {"dimensions": ["board"], "exclude": [], "naming": "x", "binary_dir_pattern": "build"}
+}

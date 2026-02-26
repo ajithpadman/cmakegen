@@ -1,0 +1,35 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": {{ cmake_minimum.major }},
+    "minor": {{ cmake_minimum.minor }},
+    "patch": {{ cmake_minimum.patch }}
+  },
+  "configurePresets": [
+{% for preset in configure_presets %}
+    {
+      "name": "{{ preset.name }}",
+      "displayName": "{{ preset.name }}",
+      "generator": "Ninja",
+      "binaryDir": "{{ preset.binaryDir }}",
+      "toolchainFile": "{{ preset.toolchainFile }}",
+      "cacheVariables": {
+        "BOARD": "{{ preset.board }}",
+        "SOC": "{{ preset.soc }}",
+        "ISA_VARIANT": "{{ preset.isa_variant }}",
+        "BUILD_VARIANT": "{{ preset.build_variant }}"
+      }
+    }{% if not loop.is_last %},{% endif %}
+
+{% endfor %}
+  ],
+  "buildPresets": [
+{% for preset in build_presets %}
+    {
+      "name": "{{ preset.name }}",
+      "configurePreset": "{{ preset.name }}"
+    }{% if not loop.is_last %},{% endif %}
+
+{% endfor %}
+  ]
+}

@@ -1,0 +1,34 @@
+# Build
+build/
+out/
+output/
+
+# Python / Conan
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.python-version
+
+# Generated / local
+full_metadata.json
+CMakeUserPresets.json
+.cmakegen_cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Conan
+conan.lock
+
+# Package output
+packages/
