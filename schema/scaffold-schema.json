@@ -298,6 +298,10 @@
           "type": "array",
           "items": { "type": "string" }
         },
+        "metadata_extensions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
         "dependencies": {
           "type": "array",
           "items": { "type": "string" }

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "project": {
     "name": "embedded_app",
-    "version": "0.1.0",
+    "version": "0.2.1",
     "cmake_minimum": {"major": 3, "minor": 23, "patch": 0}
   },
   "socs": [
@@ -48,7 +48,7 @@
   "source_tree": {
     "components": [
       {"id": "freertos", "type": "external", "conan_ref": "freertos/11.0.1"},
-      {"id": "hal", "type": "library", "library_type": "static", "source": ".", "dest": "platform/drivers/hal", "filters": {"exclude_paths": ["test"], "include_paths": ["src"]}, "source_extensions": ["*.c", "*.cpp"], "include_extensions": ["*.h"], "dependencies": []},
+      {"id": "hal", "type": "library", "library_type": "static", "source": ".", "dest": "platform/drivers/hal", "filters": {"exclude_paths": ["test"], "include_paths": ["src"]}, "source_extensions": ["*.c", "*.cpp"], "include_extensions": ["*.h"], "metadata_extensions": ["*.ld"], "dependencies": []},
       {"id": "drivers_layer", "type": "layer", "dest": "platform/drivers", "subdirs": ["hal"], "dependencies": []},
       {"id": "platform_layer", "type": "layer", "dest": "platform", "subdirs": ["drivers_layer"], "dependencies": []},
       {"id": "main_app", "type": "executable", "source": ".", "dest": "apps/main_app", "source_extensions": ["*.c", "*.cpp"], "include_extensions": ["*.h"], "dependencies": ["hal"]},

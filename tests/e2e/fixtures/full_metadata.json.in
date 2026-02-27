@@ -2,7 +2,7 @@
   "schema_version": 1,
   "project": {
     "name": "embedded_full_e2e",
-    "version": "0.1.0",
+    "version": "0.2.1",
     "cmake_minimum": {
       "major": 3,
       "minor": 23,

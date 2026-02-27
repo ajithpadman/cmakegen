@@ -2,7 +2,7 @@
   "schema_version": 1,
   "project": {
     "name": "arm_compile_test",
-    "version": "0.1.0",
+    "version": "0.2.1",
     "cmake_minimum": {"major": 3, "minor": 23, "patch": 0}
   },
   "socs": [

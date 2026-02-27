@@ -18,6 +18,7 @@ void CopyEngine::copy_tree(const SwComponent& comp, const std::filesystem::path&
 
     auto src_ext = comp.source_extensions.value_or(std::vector<std::string>{"*.c", "*.cpp", "*.cc"});
     auto inc_ext = comp.include_extensions.value_or(std::vector<std::string>{"*.h", "*.hpp"});
+    auto meta_ext = comp.metadata_extensions.value_or(std::vector<std::string>{});
 
     for (auto it = std::filesystem::recursive_directory_iterator(src, std::filesystem::directory_options::skip_permission_denied);
          it != std::filesystem::recursive_directory_iterator(); ++it) {
@@ -28,7 +29,8 @@ void CopyEngine::copy_tree(const SwComponent& comp, const std::filesystem::path&
 
         bool is_source = filter.matches_extension(entry.path(), src_ext);
         bool is_include = filter.matches_extension(entry.path(), inc_ext);
-        if (!is_source && !is_include) continue;
+        bool is_metadata = !meta_ext.empty() && filter.matches_extension(entry.path(), meta_ext);
+        if (!is_source && !is_include && !is_metadata) continue;
 
         std::filesystem::path rel = std::filesystem::relative(entry.path(), src);
         std::filesystem::path dest_path = dest / rel;

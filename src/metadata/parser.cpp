@@ -334,6 +334,10 @@ void Parser::parse_from_json(const nlohmann::json& j) {
                 comp.include_extensions = std::vector<std::string>();
                 for (const auto& x : c["include_extensions"]) comp.include_extensions->push_back(x.get<std::string>());
             }
+            if (c.contains("metadata_extensions")) {
+                comp.metadata_extensions = std::vector<std::string>();
+                for (const auto& x : c["metadata_extensions"]) comp.metadata_extensions->push_back(x.get<std::string>());
+            }
             if (c.contains("dependencies")) {
                 comp.dependencies = std::vector<std::string>();
                 for (const auto& d : c["dependencies"]) comp.dependencies->push_back(d.get<std::string>());

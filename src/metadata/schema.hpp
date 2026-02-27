@@ -112,6 +112,7 @@ struct SwComponent {
     std::optional<PathFilters> filters;
     std::optional<std::vector<std::string>> source_extensions;
     std::optional<std::vector<std::string>> include_extensions;
+    std::optional<std::vector<std::string>> metadata_extensions;
     std::optional<std::vector<std::string>> dependencies;
     std::optional<std::string> conan_ref;
     std::optional<std::vector<Variation>> variations;

@@ -546,6 +546,7 @@ Produces a static, shared, or interface library.
 | `structure` | No | `hierarchical` for tree copy with filters |
 | `source_extensions` | No | Glob patterns |
 | `include_extensions` | No | Include patterns |
+| `metadata_extensions` | No | Extra metadata/linker file patterns to copy alongside sources (e.g. linker scripts `*.ld`) |
 | `filters` | No | Copy filters |
 | `filters.include_paths` | No | Glob patterns to include |
 | `filters.exclude_paths` | No | Glob patterns to exclude |
