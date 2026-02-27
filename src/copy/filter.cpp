@@ -44,23 +44,28 @@ bool Filter::should_include(const std::filesystem::path& path, const std::filesy
     std::string path_str = rel.generic_string();
     if (path_str.empty() || path_str == ".") return true;
 
-    if (!filters_.include_paths.empty()) {
-        bool included = false;
+    auto matches_include = [this, &path_str]() {
+        if (filters_.include_paths.empty()) return true;
         for (const auto& inc : filters_.include_paths) {
-            if (matches_glob(inc, path_str) || path_str.find(inc) != std::string::npos) {
-                included = true;
-                break;
-            }
+            if (matches_glob(inc, path_str) || path_str.find(inc) != std::string::npos) return true;
         }
-        if (!included) return false;
-    }
+        return false;
+    };
+    auto matches_exclude = [this, &path_str]() {
+        for (const auto& exc : filters_.exclude_paths) {
+            if (matches_glob(exc, path_str) || path_str.find(exc) != std::string::npos) return true;
+        }
+        return false;
+    };
 
-    for (const auto& exc : filters_.exclude_paths) {
-        if (matches_glob(exc, path_str) || path_str.find(exc) != std::string::npos) {
-            return false;
-        }
+    bool inc = matches_include();
+    bool exc = matches_exclude();
+
+    if (filters_.filter_mode == FilterMode::ExcludeFirst) {
+        return !exc || inc;
+    } else {
+        return inc && !exc;
     }
-    return true;
 }
 
 bool Filter::matches_extension(const std::filesystem::path& path, const std::vector<std::string>& extensions) const {

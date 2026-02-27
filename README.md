@@ -13,6 +13,7 @@ A C++ tool that generates a complete CMake project from JSON metadata. It suppor
 - [Component Types](#component-types)
 - [Workflow Example](#workflow-example)
 - [Tests](#tests)
+- [Schema](#schema)
 
 ---
 
@@ -421,6 +422,7 @@ The software component tree. Each component has an `id`, a `type`, and type-spec
 | `git` | object | Git repository source (alternative to `source`). See [Git sources](#git-sources). |
 | `dependencies` | array | Component ids this component depends on |
 | `dest` | string | Output path relative to project root (e.g. `platform/drivers/hal`) |
+| `condition` | object | Build only when condition matches. See [Condition format](#condition-format). Applies to `executable`, `library`, `layer`. |
 
 #### Git sources
 
@@ -433,7 +435,20 @@ For executable and library components, you can use `git` instead of `source` to 
 | `branch` | string | No | Branch to checkout (shallow clone). Default: `main` if none specified |
 | `commit` | string | No | Commit SHA to checkout (full clone) |
 
-**Example:**
+**Example (library with condition — build only for Cortex-M7/M4):**
+```json
+{
+  "id": "arm_dsp",
+  "type": "library",
+  "library_type": "static",
+  "source": "vendor/CMSIS/DSP",
+  "dest": "platform/dsp",
+  "condition": { "var": "ISA_VARIANT", "op": "in", "value": ["cortex-m7", "cortex-m4"] },
+  "dependencies": []
+}
+```
+
+**Example (library from git):**
 ```json
 {
   "id": "freertos_kernel",
@@ -511,6 +526,7 @@ Produces an executable target. Source files are copied and globbed.
 |-------|----------|-------------|
 | `source` or `git` | Yes | Path to source directory, or git repository (see [Git sources](#git-sources)) |
 | `dest` | Yes | Output directory |
+| `condition` | No | Build only for matching presets (e.g. specific ISA, board). See [Condition format](#condition-format). |
 | `source_extensions` | No | Glob patterns (default: `["*.c", "*.cpp", "*.cc"]`) |
 | `include_extensions` | No | Include file patterns |
 | `dependencies` | No | Linked libraries/components |
@@ -525,6 +541,7 @@ Produces a static, shared, or interface library.
 |-------|----------|-------------|
 | `source` or `git` | Yes | Path to source directory, or git repository (see [Git sources](#git-sources)) |
 | `dest` | Yes | Output directory |
+| `condition` | No | Build only for matching presets (e.g. specific ISA, SOC). See [Condition format](#condition-format). |
 | `library_type` | No | `static`, `shared`, or `interface` (default: `static`) |
 | `structure` | No | `hierarchical` for tree copy with filters |
 | `source_extensions` | No | Glob patterns |
@@ -532,7 +549,17 @@ Produces a static, shared, or interface library.
 | `filters` | No | Copy filters |
 | `filters.include_paths` | No | Glob patterns to include |
 | `filters.exclude_paths` | No | Glob patterns to exclude |
+| `filters.filter_mode` | No | `include_first` (default) or `exclude_first`. See below. |
 | `dependencies` | No | Linked libraries |
+
+**Filter modes** — `include_paths` and `exclude_paths` work together; `filter_mode` selects the order:
+
+- **`include_first`** (default): Include then exclude. Paths must match `include_paths` (if set); then `exclude_paths` removes overlaps. Use when you want to narrow by include and then carve out exclusions.
+- **`exclude_first`**: Exclude then include. Paths matching `exclude_paths` are excluded; then `include_paths` can rescue a subset of excluded paths. Use when you want to exclude broadly and then add back specific subpaths.
+
+**Example (`include_first`):** `src/**` included, `src/test/**` excluded → only non-test under `src` are copied.
+
+**Example (`exclude_first`):** `test/**` excluded, `test/special/**` included → everything except `test/` is copied; within `test/`, only `test/special/` is copied.
 
 **Hierarchical libraries** (`structure: "hierarchical"`): Copy an external tree (e.g. FreeRTOS-Kernel) with filters, preserving directory structure. Use `include_paths` and `exclude_paths` to control what is copied.
 
@@ -561,7 +588,7 @@ Conditional subdirectory selection. Copies a source tree that contains multiple 
 | `variations[].condition` | Yes | Condition object (see below) |
 | `dependencies` | No | Dependencies |
 
-**Condition format:**
+#### Condition format
 
 Conditions can be leaf predicates or compound expressions using `and`, `or`, and `not` (recursive).
 
@@ -589,7 +616,7 @@ Conditions can be leaf predicates or compound expressions using `and`, `or`, and
 }
 ```
 
-Available variables: `SOC`, `BOARD`, `ISA_VARIANT`, `BUILD_VARIANT` (from CMake Presets).
+Available variables: `SOC`, `BOARD`, `ISA_VARIANT`, `BUILD_VARIANT` (from CMake Presets). The same condition format is used by the optional `condition` field on `executable`, `library`, and `layer` components.
 
 ---
 
@@ -601,6 +628,7 @@ Aggregates other components into a directory. Does not copy sources; only create
 |-------|----------|-------------|
 | `dest` | Yes | Output directory |
 | `subdirs` | Yes | Component ids to include (in order) |
+| `condition` | No | Include this layer only for matching presets. Subdirs may also have their own conditions. |
 
 ---
 

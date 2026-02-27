@@ -1,5 +1,11 @@
+{% if exists("condition_cmake") %}
+if({{ condition_cmake }})
+{% endif %}
 add_hierarchical_library({{ id }} {{ upper(library_type) }}
   SOURCE_EXTENSIONS {% for ext in source_extensions %}{{ ext }} {% endfor %}
   INCLUDE_EXTENSIONS {% for ext in include_extensions %}{{ ext }} {% endfor %}
   {% if dependencies %}LINK_LIBRARIES {% for d in dependencies %}{{ d }} {% endfor %}{% endif %}
 )
+{% if exists("condition_cmake") %}
+endif()
+{% endif %}

@@ -21,13 +21,15 @@ void CmakeGenerator::generate_all() {
 
 void CmakeGenerator::generate_root_cmakelists() {
     std::map<std::string, std::string> comp_dest;
+    std::map<std::string, std::optional<Condition>> comp_condition;
     for (const auto& c : metadata_.source_tree.components) {
         if (c.dest && c.type != "external") {
             comp_dest[c.id] = *c.dest;
+            comp_condition[c.id] = c.condition;
         }
     }
 
-    std::vector<std::string> subdirs;
+    nlohmann::json subdirs_json = nlohmann::json::array();
     const SwComponent* root_layer = nullptr;
     for (const auto& c : metadata_.source_tree.components) {
         if (c.type == "layer" && c.id == "root_layer") {
@@ -40,13 +42,23 @@ void CmakeGenerator::generate_root_cmakelists() {
         for (const auto& sub : *root_layer->subdirs) {
             auto it = comp_dest.find(sub);
             if (it != comp_dest.end() && it->second != ".") {
-                subdirs.push_back(it->second);
+                auto cond_it = comp_condition.find(sub);
+                std::string cond_cmake;
+                if (cond_it != comp_condition.end() && cond_it->second) {
+                    cond_cmake = cond_eval_.to_cmake_if(*cond_it->second);
+                }
+                if (cond_cmake.empty())
+                    subdirs_json.push_back(nlohmann::json::array({it->second}));
+                else
+                    subdirs_json.push_back(nlohmann::json::array({it->second, cond_cmake}));
             }
         }
     } else {
         for (const auto& c : metadata_.source_tree.components) {
             if (c.type == "layer" && c.dest && *c.dest != ".") {
-                subdirs.push_back(*c.dest);
+                std::string cond_cmake;
+                if (c.condition) cond_cmake = cond_eval_.to_cmake_if(*c.condition);
+                subdirs_json.push_back(nlohmann::json::array({*c.dest, cond_cmake}));
             }
         }
     }
@@ -57,7 +69,7 @@ void CmakeGenerator::generate_root_cmakelists() {
     data["cmake_minimum"]["major"] = metadata_.project.cmake_minimum.major;
     data["cmake_minimum"]["minor"] = metadata_.project.cmake_minimum.minor;
     data["cmake_minimum"]["patch"] = metadata_.project.cmake_minimum.patch;
-    data["subdirs"] = subdirs;
+    data["subdirs"] = subdirs_json;
 
     TemplateEngine engine;
     engine.render_to_file("root_cmakelists.jinja2", data, output_root_ / "CMakeLists.txt");
@@ -90,30 +102,33 @@ void CmakeGenerator::generate_component_cmakelists(const SwComponent& comp) {
     }
 }
 
-static nlohmann::json comp_to_json(const SwComponent& comp) {
+static nlohmann::json comp_to_json(const SwComponent& comp, ConditionEvaluator* cond_eval) {
     nlohmann::json j;
     j["id"] = comp.id;
     j["library_type"] = comp.library_type.value_or("static");
     j["source_extensions"] = comp.source_extensions.value_or(std::vector<std::string>{"*.c", "*.cpp", "*.cc"});
     j["include_extensions"] = comp.include_extensions.value_or(std::vector<std::string>{"*.h", "*.hpp"});
     j["dependencies"] = comp.dependencies.value_or(std::vector<std::string>{});
+    if (comp.condition && cond_eval) {
+        j["condition_cmake"] = cond_eval->to_cmake_if(*comp.condition);
+    }
     return j;
 }
 
 void CmakeGenerator::generate_library(const SwComponent& comp, const std::filesystem::path& dest) {
-    nlohmann::json data = comp_to_json(comp);
+    nlohmann::json data = comp_to_json(comp, &cond_eval_);
     TemplateEngine engine;
     engine.render_to_file("library_cmakelists.jinja2", data, dest / "CMakeLists.txt");
 }
 
 void CmakeGenerator::generate_hierarchical_library(const SwComponent& comp, const std::filesystem::path& dest) {
-    nlohmann::json data = comp_to_json(comp);
+    nlohmann::json data = comp_to_json(comp, &cond_eval_);
     TemplateEngine engine;
     engine.render_to_file("hierarchical_library_cmakelists.jinja2", data, dest / "CMakeLists.txt");
 }
 
 void CmakeGenerator::generate_executable(const SwComponent& comp, const std::filesystem::path& dest) {
-    nlohmann::json data = comp_to_json(comp);
+    nlohmann::json data = comp_to_json(comp, &cond_eval_);
     TemplateEngine engine;
     engine.render_to_file("executable_cmakelists.jinja2", data, dest / "CMakeLists.txt");
 }
@@ -137,11 +152,15 @@ void CmakeGenerator::generate_variant(const SwComponent& comp, const std::filesy
 
 void CmakeGenerator::generate_layer(const SwComponent& comp, const std::filesystem::path& dest) {
     std::map<std::string, std::string> comp_dest;
+    std::map<std::string, std::optional<Condition>> comp_condition;
     for (const auto& c : metadata_.source_tree.components) {
-        if (c.dest && c.type != "external") comp_dest[c.id] = *c.dest;
+        if (c.dest && c.type != "external") {
+            comp_dest[c.id] = *c.dest;
+            comp_condition[c.id] = c.condition;
+        }
     }
 
-    std::vector<std::string> subdirs;
+    nlohmann::json subdirs_json = nlohmann::json::array();
     for (const auto& sub : comp.subdirs.value_or(std::vector<std::string>{})) {
         auto it = comp_dest.find(sub);
         if (it != comp_dest.end()) {
@@ -153,12 +172,21 @@ void CmakeGenerator::generate_layer(const SwComponent& comp, const std::filesyst
             } catch (...) {
                 rel = subpath;
             }
-            subdirs.push_back(rel.generic_string());
+            std::string cond_cmake;
+            auto cond_it = comp_condition.find(sub);
+            if (cond_it != comp_condition.end() && cond_it->second) {
+                cond_cmake = cond_eval_.to_cmake_if(*cond_it->second);
+            }
+            if (cond_cmake.empty())
+                subdirs_json.push_back(nlohmann::json::array({rel.generic_string()}));
+            else
+                subdirs_json.push_back(nlohmann::json::array({rel.generic_string(), cond_cmake}));
         }
     }
 
     nlohmann::json data;
-    data["subdirs"] = subdirs;
+    data["subdirs"] = subdirs_json;
+    if (comp.condition) data["condition_cmake"] = cond_eval_.to_cmake_if(*comp.condition);
 
     TemplateEngine engine;
     engine.render_to_file("layer_cmakelists.jinja2", data, dest / "CMakeLists.txt");

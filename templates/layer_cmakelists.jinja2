@@ -1,3 +1,15 @@
-{% for subdir in subdirs %}
-add_subdirectory({{ subdir }})
+{% if exists("condition_cmake") %}
+if({{ condition_cmake }})
+{% endif %}
+{% for entry in subdirs %}
+{% if length(entry) > 1 and last(entry) %}
+if({{ last(entry) }})
+  add_subdirectory({{ first(entry) }})
+endif()
+{% else %}
+add_subdirectory({{ first(entry) }})
+{% endif %}
 {% endfor %}
+{% if exists("condition_cmake") %}
+endif()
+{% endif %}

@@ -308,12 +308,22 @@ void Parser::parse_from_json(const nlohmann::json& j) {
                 comp.git = gs;
             }
             comp.dest = c.contains("dest") ? std::optional(c["dest"].get<std::string>()) : std::nullopt;
+            if (c.contains("condition")) {
+                Condition cond;
+                parse_condition(c["condition"], cond);
+                comp.condition = cond;
+            }
             if (c.contains("filters")) {
                 PathFilters pf;
                 if (c["filters"].contains("exclude_paths"))
                     for (const auto& x : c["filters"]["exclude_paths"]) pf.exclude_paths.push_back(x.get<std::string>());
                 if (c["filters"].contains("include_paths"))
                     for (const auto& x : c["filters"]["include_paths"]) pf.include_paths.push_back(x.get<std::string>());
+                if (c["filters"].contains("filter_mode")) {
+                    std::string mode = c["filters"]["filter_mode"].get<std::string>();
+                    if (mode == "exclude_first") pf.filter_mode = FilterMode::ExcludeFirst;
+                    else pf.filter_mode = FilterMode::IncludeFirst;
+                }
                 comp.filters = pf;
             }
             if (c.contains("source_extensions")) {

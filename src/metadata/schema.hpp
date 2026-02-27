@@ -73,9 +73,15 @@ struct GitSource {
     std::optional<std::string> commit;
 };
 
+enum class FilterMode {
+    IncludeFirst,   // Include then exclude: path in if (matches_include) AND (not matches_exclude)
+    ExcludeFirst    // Exclude then include: path in if (not matches_exclude) OR (matches_include)
+};
+
 struct PathFilters {
     std::vector<std::string> exclude_paths;
     std::vector<std::string> include_paths;
+    FilterMode filter_mode = FilterMode::IncludeFirst;
 };
 
 // Condition for variant components (recursive)
@@ -102,6 +108,7 @@ struct SwComponent {
     std::optional<std::string> source;  // local path (relative to metadata file)
     std::optional<GitSource> git;  // when set, clone repo and use as source instead of local path
     std::optional<std::string> dest;
+    std::optional<Condition> condition;  // build only when condition matches (executable, library, layer)
     std::optional<PathFilters> filters;
     std::optional<std::vector<std::string>> source_extensions;
     std::optional<std::vector<std::string>> include_extensions;

@@ -1,6 +1,12 @@
+{% if exists("condition_cmake") %}
+if({{ condition_cmake }})
+{% endif %}
 file(GLOB_RECURSE SRCS{% for ext in source_extensions %} {{ ext }}{% endfor %})
 add_library({{ id }} {{ upper(library_type) }} ${SRCS})
 target_include_directories({{ id }} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include)
 {% if dependencies %}
 target_link_libraries({{ id }} PRIVATE{% for d in dependencies %} {{ d }}{% endfor %})
+{% endif %}
+{% if exists("condition_cmake") %}
+endif()
 {% endif %}

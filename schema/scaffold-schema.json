@@ -196,6 +196,12 @@
         "include_paths": {
           "type": "array",
           "items": { "type": "string" }
+        },
+        "filter_mode": {
+          "type": "string",
+          "enum": ["include_first", "exclude_first"],
+          "default": "include_first",
+          "description": "include_first: include then exclude (exclude removes included). exclude_first: exclude then include (include rescues excluded)."
         }
       }
     },
@@ -282,6 +288,7 @@
         "structure": { "type": "string" },
         "source": { "type": "string" },
         "dest": { "type": "string" },
+        "condition": { "$ref": "#/definitions/condition", "description": "Build only when condition matches (executable, library, layer)" },
         "filters": { "$ref": "#/definitions/path_filters" },
         "source_extensions": {
           "type": "array",

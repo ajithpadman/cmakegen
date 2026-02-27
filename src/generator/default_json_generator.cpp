@@ -19,7 +19,7 @@ std::string generate_default_json() {
 
     j["project"] = {
         {"name", ""},
-        {"version", "0.1.0"},
+        {"version", "0.2.0"},
         {"cmake_minimum", {{"major", 3}, {"minor", 23}, {"patch", 0}}}
     };
 
@@ -74,7 +74,8 @@ std::string generate_default_json() {
         {"dest", ""},
         {"filters", {
             {"exclude_paths", nlohmann::json::array()},
-            {"include_paths", nlohmann::json::array()}
+            {"include_paths", nlohmann::json::array()},
+            {"filter_mode", "include_first"}
         }},
         {"source_extensions", nlohmann::json::array({"*.c", "*.cpp"})},
         {"include_extensions", nlohmann::json::array({"*.h", "*.hpp"})},
