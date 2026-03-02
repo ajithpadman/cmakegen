@@ -1,4 +1,5 @@
-# CMakeGen – CMake Project Generator for Bare-Metal Embedded Systems
+![Version](https://img.shields.io/badge/version-0.2.3-blue.svg)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 A C++ tool that generates a complete CMake project from JSON metadata. It supports multi-SOC, multi-ISA heterogeneous cores, multiple toolchains, CMake Presets, and Conan dependencies. Ideal for embedded projects targeting ARM, RISC-V, or other bare-metal platforms.
 
