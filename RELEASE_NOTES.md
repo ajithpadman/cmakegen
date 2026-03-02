@@ -1,5 +1,21 @@
 # Release Notes
 
+## 0.2.2
+
+### New Features
+
+- **Interactive metadata wizard (FTXUI)** — Added a fullscreen, cross-platform interactive CLI (`cmakegen init` / `--interactive`) to build schema-valid metadata JSON via a guided wizard (projects, SoCs, boards, toolchains, variants, components, Conan deps).
+
+### Changes
+
+- **Always build interactive mode** — FTXUI is now fetched via CMake `FetchContent` when not provided by Conan, and `cmakegen` always links the interactive UI.
+- **Presets and builds** — Existing `linux` and `windows` CMake presets are wired to build and test the interactive-enabled binary.
+
+### Compatibility
+
+- The JSON schema is unchanged; existing metadata files continue to work. The wizard simply generates JSON compatible with the current schema.
+
+
 ## 0.2.1
 
 ### New Features

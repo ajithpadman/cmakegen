@@ -1,0 +1,191 @@
+{
+  "boards": [
+    {
+      "defines": [
+        "TRIBOARD"
+      ],
+      "display_name": "triboard",
+      "id": "triboard",
+      "socs": [
+        "TC4D9"
+      ]
+    }
+  ],
+  "build_variants": [
+    {
+      "flags": {
+        "c": [
+          "-g",
+          "-O0"
+        ],
+        "cxx": [
+          "-g",
+          "-O0"
+        ]
+      },
+      "id": "debug"
+    },
+    {
+      "flags": {
+        "c": [
+          "-O3",
+          "-DNDEBUG"
+        ],
+        "cxx": [
+          "-O3",
+          "-DNDEBUG"
+        ]
+      },
+      "id": "release"
+    }
+  ],
+  "dependencies": {
+    "extra_requires": [],
+    "tool_requires": [
+      "cmake/3.28.0"
+    ]
+  },
+  "env": {},
+  "isa_variants": [
+    {
+      "display_name": "tc18",
+      "id": "tc18",
+      "toolchain": "cctc"
+    }
+  ],
+  "preset_matrix": {
+    "binary_dir_pattern": "build/${preset}",
+    "dimensions": [
+      "board",
+      "soc",
+      "isa_variant",
+      "build_variant"
+    ],
+    "exclude": [],
+    "naming": "{board}_{soc}_{isa}_{variant}"
+  },
+  "project": {
+    "cmake_minimum": {
+      "major": 3,
+      "minor": 23,
+      "patch": 0
+    },
+    "name": "myProject",
+    "version": "0.1.0"
+  },
+  "schema_version": 1,
+  "socs": [
+    {
+      "description": "",
+      "display_name": "TC4D9",
+      "id": "TC4D9",
+      "isas": [
+        "tc18",
+        "arcev"
+      ]
+    }
+  ],
+  "source_tree": {
+    "components": [
+      {
+        "dependencies": [],
+        "id": "comp",
+        "include_extensions": [
+          "*.h",
+          "*.hpp"
+        ],
+        "library_type": "static",
+        "source_extensions": [
+          "*.c",
+          "*.cpp"
+        ],
+        "type": "library"
+      },
+      {
+        "dependencies": [],
+        "id": "someexe",
+        "include_extensions": [
+          "*.h",
+          "*.hpp"
+        ],
+        "source_extensions": [
+          "*.c",
+          "*.cpp"
+        ],
+        "type": "executable"
+      }
+    ]
+  },
+  "toolchains": [
+    {
+      "compiler": {
+        "asm": "cctc",
+        "c": "cctc",
+        "cxx": "cctc"
+      },
+      "defines": [],
+      "display_name": "cctc",
+      "flags": {
+        "asm": [
+          "-mcpu=cortex-m7",
+          "-mthumb"
+        ],
+        "c": [
+          "-mcpu=cortex-m7",
+          "-mthumb"
+        ],
+        "cxx": [
+          "-mcpu=cortex-m7",
+          "-mthumb"
+        ],
+        "linker": [
+          "-mcpu=cortex-m7",
+          "-mthumb",
+          "-specs=nano.specs"
+        ]
+      },
+      "id": "cctc",
+      "lib_paths": [],
+      "libs": [
+        "c",
+        "nosys"
+      ],
+      "sysroot": ""
+    },
+    {
+      "compiler": {
+        "asm": "cctc",
+        "c": "cctc",
+        "cxx": "cctc"
+      },
+      "defines": [],
+      "display_name": "cctc",
+      "flags": {
+        "asm": [
+          "-mcpu=cortex-m7",
+          "-mthumb"
+        ],
+        "c": [
+          "-mcpu=cortex-m7",
+          "-mthumb"
+        ],
+        "cxx": [
+          "-mcpu=cortex-m7",
+          "-mthumb"
+        ],
+        "linker": [
+          "-mcpu=cortex-m7",
+          "-mthumb",
+          "-specs=nano.specs"
+        ]
+      },
+      "id": "cctc",
+      "lib_paths": [],
+      "libs": [
+        "c",
+        "nosys"
+      ],
+      "sysroot": ""
+    }
+  ]
+}

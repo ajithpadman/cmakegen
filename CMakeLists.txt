@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.23)
-project(cmakegen VERSION 0.2.1 LANGUAGES CXX)
+project(cmakegen VERSION 0.2.2 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -45,6 +45,18 @@ FetchContent_Declare(CLI11
     GIT_TAG v2.4.1
 )
 FetchContent_MakeAvailable(CLI11)
+
+# FTXUI for interactive CLI (always built: from Conan when available, else FetchContent)
+find_package(ftxui QUIET)
+if(NOT ftxui_FOUND)
+    set(FTXUI_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(FTXUI_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    FetchContent_Declare(ftxui
+        GIT_REPOSITORY https://github.com/ArthurSonzogni/FTXUI.git
+        GIT_TAG v6.1.9
+    )
+    FetchContent_MakeAvailable(ftxui)
+endif()
 
 FetchContent_Declare(inja
     GIT_REPOSITORY https://github.com/pantor/inja.git
@@ -101,9 +113,13 @@ if(CMAKEGEN_USE_YAML)
     endif()
 endif()
 
-# Main executable
-add_executable(cmakegen src/main.cpp)
-target_link_libraries(cmakegen PRIVATE cmakegen_lib CLI11::CLI11)
+# Main executable (interactive mode always included)
+add_executable(cmakegen
+    src/main.cpp
+    src/interactive/prompt_runner.cpp
+    src/interactive/metadata_builder.cpp
+)
+target_link_libraries(cmakegen PRIVATE cmakegen_lib CLI11::CLI11 ftxui::component)
 
 # Install (runtime component only - excludes test deps)
 include(GNUInstallDirs)

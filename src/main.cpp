@@ -9,6 +9,8 @@
 #include "generator/preset_generator.hpp"
 #include "generator/conan_generator.hpp"
 #include "generator/default_json_generator.hpp"
+#include "interactive/prompt_runner.hpp"
+#include "interactive/metadata_builder.hpp"
 #include <CLI/CLI.hpp>
 #include <iostream>
 #include <fstream>
@@ -18,11 +20,12 @@ namespace fs = std::filesystem;
 
 int main(int argc, char* argv[]) {
     CLI::App app{"CMake project generator for bare-metal embedded systems"};
-    app.footer("Metadata file must be JSON. Use --default-json to generate a template.");
+    app.footer("Metadata file must be JSON. Use 'init' or --interactive for an interactive wizard, or --default-json to print a template.");
 
     std::string metadata_file;
     std::string output_dir = "./output";
     std::string default_json_output;
+    std::string interactive_output;
     bool validate_only = false;
     bool dry_run = false;
 
@@ -36,12 +39,30 @@ int main(int argc, char* argv[]) {
 
     app.add_flag("--dry-run", dry_run, "Print actions without executing");
 
+    auto* init_cmd = app.add_subcommand("init", "Interactive metadata JSON wizard");
+    init_cmd->add_option("-o,--output", interactive_output, "Output file path")->default_val("metadata.json");
+    auto* interactive_opt = app.add_option("--interactive,-i", interactive_output,
+                   "Interactive mode: build metadata JSON via wizard. Optional output path.")
+        ->expected(0, 1)
+        ->default_str("");
+
     auto* default_opt = app.add_option("--default-json", default_json_output,
                    "Generate default JSON template. Write to file if path given, else stdout")
         ->expected(0, 1)
         ->default_str("");
 
     CLI11_PARSE(app, argc, argv);
+
+    if (init_cmd->parsed() || interactive_opt->count() > 0) {
+        scaffolder::MetadataBuilder builder;
+        std::string out_path = interactive_output.empty() ? "metadata.json" : interactive_output;
+        if (scaffolder::run_interactive(builder, out_path)) {
+            std::cout << "Metadata written to " << out_path << "\n";
+            return 0;
+        }
+        std::cerr << "Interactive mode cancelled or failed.\n";
+        return 1;
+    }
 
     if (default_opt->count() > 0) {
         std::ostream* out = &std::cout;

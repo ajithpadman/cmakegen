@@ -8,6 +8,7 @@ A C++ tool that generates a complete CMake project from JSON metadata. It suppor
 
 - [Building CMakeGen](#building-cmakegen)
 - [Running CMakeGen](#running-cmakegen)
+  - [Interactive mode](#interactive-mode)
 - [Generated Output](#generated-output)
 - [Metadata JSON Reference](#metadata-json-reference)
 - [Component Types](#component-types)
@@ -122,10 +123,34 @@ cmake --build build
 | `--validate-only` | — | Validate metadata without generating |
 | `--dry-run` | — | Print actions without executing |
 | `--default-json` | — | Generate default JSON template. Optional path: write to file; else stdout |
+| `init` | — | **Interactive mode** (subcommand). Run a TUI wizard to build metadata JSON. Optional `-o <path>` for output file (default: `metadata.json`). |
+| `--interactive` | `-i` | **Interactive mode** (flag). Same as `init`; optional argument is the output file path. |
+
+### Interactive mode
+
+CMakeGen includes an interactive terminal UI (FTXUI) to create metadata without editing JSON by hand. It is built by default (FTXUI is fetched automatically if not provided by Conan).
+
+```bash
+# Start the wizard; output file defaults to metadata.json
+./build/cmakegen init
+
+# Write to a specific file
+./build/cmakegen init -o my_meta.json
+
+# Same using the flag
+./build/cmakegen --interactive
+./build/cmakegen -i meta.json
+```
+
+The wizard walks you through: project name and version, SOCs, boards, toolchains, ISA/build variants, optional source-tree components (executables, libraries, externals, layers), and Conan dependencies. At the end it writes a schema-valid JSON file you can use with `cmakegen -o <dir> <file>` to generate the project.
 
 ### Examples
 
 ```bash
+# Interactive wizard
+./build/cmakegen init
+./build/cmakegen init -o metadata.json
+
 # Generate a default metadata template (to stdout)
 ./build/cmakegen --default-json
 
@@ -635,7 +660,7 @@ Aggregates other components into a directory. Does not copy sources; only create
 
 ## Workflow Example
 
-1. **Create metadata** — Define project, SOCs, boards, toolchains, and components in `metadata.json`.
+1. **Create metadata** — Define project, SOCs, boards, toolchains, and components in `metadata.json`. Alternatively, run `./build/cmakegen init` to use the interactive wizard.
 
 2. **Validate** — Check metadata before generating:
    ```bash
