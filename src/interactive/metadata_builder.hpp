@@ -1,7 +1,9 @@
 #pragma once
 
+#include <memory>
 #include <optional>
 #include <string>
+#include <variant>
 #include <vector>
 #include <map>
 
@@ -69,13 +71,24 @@ struct PathFiltersData {
     std::vector<std::string> exclude_paths;
 };
 
+// Recursive condition for variant (mirrors schema Condition: leaf or and/or/not).
+struct ConditionData {
+    std::optional<std::string> var;
+    std::optional<std::string> op;
+    std::optional<std::variant<std::string, std::vector<std::string>>> value;
+    std::optional<bool> default_;
+    std::optional<std::vector<std::shared_ptr<ConditionData>>> and_;
+    std::optional<std::vector<std::shared_ptr<ConditionData>>> or_;
+    std::optional<std::shared_ptr<ConditionData>> not_;
+};
+
 struct VariationData {
     std::string subdir;
-    std::string cond_var;   // e.g. SOC
-    std::string cond_op;   // in | equals
-    std::vector<std::string> cond_value;
-    bool is_default = false;
+    std::shared_ptr<ConditionData> condition;  // null = not set
 };
+
+// Human-readable one-line summary of a condition (for UI display).
+std::string condition_summary(const std::shared_ptr<ConditionData>& cond);
 
 struct ComponentData {
     std::string id;

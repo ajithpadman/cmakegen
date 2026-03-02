@@ -29,6 +29,11 @@ target_link_libraries(condition_evaluator_test PRIVATE cmakegen_lib GTest::gtest
 target_include_directories(condition_evaluator_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
 add_test(NAME ConditionEvaluatorTest COMMAND condition_evaluator_test)
 
+add_executable(metadata_builder_test unit/metadata_builder_test.cpp)
+target_link_libraries(metadata_builder_test PRIVATE cmakegen_lib GTest::gtest GTest::gtest_main)
+target_include_directories(metadata_builder_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
+add_test(NAME MetadataBuilderTest COMMAND metadata_builder_test)
+
 add_executable(integration_test integration/pipeline_test.cpp)
 target_link_libraries(integration_test PRIVATE cmakegen_lib GTest::gtest GTest::gtest_main)
 target_include_directories(integration_test PRIVATE ${CMAKE_SOURCE_DIR}/src)

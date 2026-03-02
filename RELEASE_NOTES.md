@@ -1,5 +1,23 @@
 # Release Notes
 
+## 0.2.3
+
+### New Features
+
+- **Type-aware component screen** — The interactive wizard shows only fields relevant to each component type (e.g. filters for executable/library, variations for variant, subdirs for layer). Hierarchical layout option for libraries; optional path filters and git source toggles.
+- **Complex variant conditions** — Variant components support AND/OR/NOT condition trees via a recursive "Edit condition" flow. Condition summary is shown in the component list; Reset and Edit/Remove for sub-conditions.
+
+### Changes
+
+- **Condition editor** — After creating an AND/OR condition, the "Add sub-condition" button appears immediately without leaving the screen. NOT is treated as unary (no "Add sub-condition" for NOT nodes).
+- **Metadata builder tests** — `metadata_builder.cpp` moved into `cmakegen_lib`; new `MetadataBuilderTest` covers normalize_id, split_comma_separated, condition_summary, to_json round-trip, preset matrix, and full pipeline. Manual checklist in `docs/interactive_test_checklist.md`.
+
+### Compatibility
+
+- Schema and existing metadata unchanged. Generated JSON from the wizard remains compatible with the current validator and generator.
+
+---
+
 ## 0.2.2
 
 ### New Features

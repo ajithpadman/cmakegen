@@ -27,18 +27,9 @@ A C++ tool that generates a complete CMake project from JSON metadata. It suppor
 - Ninja (recommended) or Make
 - Git (required when using `git` source for components)
 
-### Build with FetchContent (no package manager)
+### Build with CMake Presets (recommended)
 
-```bash
-cmake -B build -S . -G Ninja
-cmake --build build
-```
-
-The executable is produced at `build/cmakegen`.
-
-### Build with CMake Presets
-
-The project provides presets for Linux and Windows cross-compilation:
+The project uses **preset-based build**: configure and build via CMake Presets. Presets are defined in `CMakePresets.json` at the project root.
 
 | Preset | Description | Output |
 |--------|-------------|--------|
@@ -63,6 +54,17 @@ sudo apt install gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64
 ```
 
 The Windows executable is built with static linking for a standalone `.exe` with no DLL dependencies.
+
+### Build without presets (alternative)
+
+If you prefer a single build directory without using presets:
+
+```bash
+cmake -B build -S . -G Ninja
+cmake --build build
+```
+
+The executable is produced at `build/cmakegen`.
 
 ### Install
 
@@ -110,8 +112,10 @@ cmake --build build
 
 ### Basic usage
 
+If you built with the `linux` preset, the binary is at `build/linux/cmakegen`; with `windows`, at `build/windows/cmakegen.exe`. The examples below use `build/linux/cmakegen`; adjust if you use a different build directory.
+
 ```bash
-./build/cmakegen [options] <metadata-file>
+./build/linux/cmakegen [options] <metadata-file>
 ```
 
 ### Options
@@ -132,14 +136,14 @@ CMakeGen includes an interactive terminal UI (FTXUI) to create metadata without 
 
 ```bash
 # Start the wizard; output file defaults to metadata.json
-./build/cmakegen init
+./build/linux/cmakegen init
 
 # Write to a specific file
-./build/cmakegen init -o my_meta.json
+./build/linux/cmakegen init -o my_meta.json
 
 # Same using the flag
-./build/cmakegen --interactive
-./build/cmakegen -i meta.json
+./build/linux/cmakegen --interactive
+./build/linux/cmakegen -i meta.json
 ```
 
 The wizard walks you through: project name and version, SOCs, boards, toolchains, ISA/build variants, optional source-tree components (executables, libraries, externals, layers), and Conan dependencies. At the end it writes a schema-valid JSON file you can use with `cmakegen -o <dir> <file>` to generate the project.
@@ -148,23 +152,23 @@ The wizard walks you through: project name and version, SOCs, boards, toolchains
 
 ```bash
 # Interactive wizard
-./build/cmakegen init
-./build/cmakegen init -o metadata.json
+./build/linux/cmakegen init
+./build/linux/cmakegen init -o metadata.json
 
 # Generate a default metadata template (to stdout)
-./build/cmakegen --default-json
+./build/linux/cmakegen --default-json
 
 # Generate template to a file
-./build/cmakegen --default-json metadata.json
+./build/linux/cmakegen --default-json metadata.json
 
 # Generate a project into ./my_embedded_project
-./build/cmakegen -o ./my_embedded_project metadata.json
+./build/linux/cmakegen -o ./my_embedded_project metadata.json
 
 # Validate metadata only
-./build/cmakegen --validate-only metadata.json
+./build/linux/cmakegen --validate-only metadata.json
 
 # Dry run to preview actions
-./build/cmakegen --dry-run -o ./out metadata.json
+./build/linux/cmakegen --dry-run -o ./out metadata.json
 ```
 
 ### Path resolution
@@ -660,16 +664,16 @@ Aggregates other components into a directory. Does not copy sources; only create
 
 ## Workflow Example
 
-1. **Create metadata** — Define project, SOCs, boards, toolchains, and components in `metadata.json`. Alternatively, run `./build/cmakegen init` to use the interactive wizard.
+1. **Create metadata** — Define project, SOCs, boards, toolchains, and components in `metadata.json`. Alternatively, run `./build/linux/cmakegen init` to use the interactive wizard.
 
 2. **Validate** — Check metadata before generating:
    ```bash
-   ./build/cmakegen --validate-only metadata.json
+   ./build/linux/cmakegen --validate-only metadata.json
    ```
 
 3. **Generate** — Create the project:
    ```bash
-   ./build/cmakegen -o ./my_project metadata.json
+   ./build/linux/cmakegen -o ./my_project metadata.json
    ```
 
 4. **Build generated project** — Use CMake Presets:
@@ -690,15 +694,19 @@ Aggregates other components into a directory. Does not copy sources; only create
 
 ## Tests
 
+With the `linux` preset, run tests from the preset build directory:
+
 ```bash
-ctest --test-dir build
+ctest --test-dir build/linux --output-on-failure
 ```
 
 Or run a specific test:
 
 ```bash
-ctest --test-dir build -R E2ETest -V
+ctest --test-dir build/linux -R E2ETest -V
 ```
+
+If you built without presets (e.g. `cmake -B build`), use `ctest --test-dir build` instead.
 
 ---
 

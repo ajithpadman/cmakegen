@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.23)
-project(cmakegen VERSION 0.2.2 LANGUAGES CXX)
+project(cmakegen VERSION 0.2.3 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -87,6 +87,7 @@ add_library(cmakegen_lib
     src/generator/conan_generator.cpp
     src/generator/default_json_generator.cpp
     src/resolver/path_resolver.cpp
+    src/interactive/metadata_builder.cpp
 )
 
 target_include_directories(cmakegen_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -117,7 +118,6 @@ endif()
 add_executable(cmakegen
     src/main.cpp
     src/interactive/prompt_runner.cpp
-    src/interactive/metadata_builder.cpp
 )
 target_link_libraries(cmakegen PRIVATE cmakegen_lib CLI11::CLI11 ftxui::component)
 
