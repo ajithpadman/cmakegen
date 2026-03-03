@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.23)
-project(cmakegen VERSION 0.2.3 LANGUAGES CXX)
+project(cmakegen VERSION 0.2.4 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -118,6 +118,7 @@ endif()
 add_executable(cmakegen
     src/main.cpp
     src/interactive/prompt_runner.cpp
+    src/interactive/wizard.cpp
 )
 target_link_libraries(cmakegen PRIVATE cmakegen_lib CLI11::CLI11 ftxui::component)
 

@@ -1,5 +1,17 @@
 # Release Notes
 
+## 0.2.4
+
+### Changes
+
+- **Wizard state machine** — The interactive wizard now uses an explicit state machine: `WizardState` enum (Project, Socs, Boards, Toolchains, IsaVariants, BuildVariants, Components, Dependencies, Output, Done), screens stored in a map by state, and `Run()` returns the next state. Flow is driven by a single loop over current state instead of a fixed screen list.
+
+### Compatibility
+
+- Behavior unchanged; schema and generated metadata unchanged.
+
+---
+
 ## 0.2.3
 
 ### New Features
