@@ -5,7 +5,7 @@ from conan.tools.build import check_min_cppstd
 
 class CmakegenConan(ConanFile):
     name = "cmakegen"
-    version = "0.2.2"
+    version = "0.2.5"
     package_type = "application"
     settings = "os", "compiler", "build_type", "arch"
     generators = "CMakeDeps", "CMakeToolchain"

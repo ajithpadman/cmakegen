@@ -29,7 +29,17 @@ std::string normalize_id(const std::string& name) {
 
 std::vector<std::string> split_comma_separated(const std::string& s) {
     std::vector<std::string> out;
-    std::istringstream iss(s);
+    // Treat commas, newlines, carriage returns, and semicolons as separators.
+    std::string normalized;
+    normalized.reserve(s.size());
+    for (char ch : s) {
+        if (ch == ',' || ch == '\n' || ch == '\r' || ch == ';') {
+            normalized.push_back(',');
+        } else {
+            normalized.push_back(ch);
+        }
+    }
+    std::istringstream iss(normalized);
     std::string token;
     while (std::getline(iss, token, ',')) {
         size_t start = token.find_first_not_of(" \t");

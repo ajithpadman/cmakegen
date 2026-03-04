@@ -11,6 +11,9 @@ class ScreenInteractive;
 
 namespace scaffolder {
 
+/** Run the full condition editor (simple + compound AND/OR/NOT). Used by init wizard and add-component variant flow. */
+void run_condition_editor(ftxui::ScreenInteractive& screen, std::shared_ptr<ConditionData>& cond);
+
 enum class WizardState {
     Project,
     Socs,

@@ -3,6 +3,7 @@
 #include "metadata/parser.hpp"
 #include "metadata/validator.hpp"
 #include <ftxui/component/component.hpp>
+#include <ftxui/component/event.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <fstream>
@@ -333,10 +334,14 @@ public:
                 text("C compiler: "), c_i->Render(),
                 text("C++ compiler: "), cxx_i->Render(),
                 text("ASM compiler: "), asm_i->Render(),
-                text("C flags (comma): "), cf_i->Render(),
-                text("CXX flags: "), cxxf_i->Render(),
-                text("ASM flags: "), asmf_i->Render(),
-                text("Linker flags: "), lf_i->Render(),
+                text("C flags (one per line or comma-separated):"),
+                cf_i->Render() | size(HEIGHT, GREATER_THAN, 3),
+                text("CXX flags (one per line or comma-separated, empty = same as C):"),
+                cxxf_i->Render() | size(HEIGHT, GREATER_THAN, 3),
+                text("ASM flags (one per line or comma-separated, empty = same as C):"),
+                asmf_i->Render() | size(HEIGHT, GREATER_THAN, 3),
+                text("Linker flags (one per line or comma-separated):"),
+                lf_i->Render() | size(HEIGHT, GREATER_THAN, 3),
                 text("Libs (comma): "), libs_i->Render(),
                 text("Defines: "), defs_i->Render(),
                 text("Sysroot: "), sys_i->Render(),
@@ -571,14 +576,14 @@ public:
 
             auto lib_radio = Radiobox(&lib_opts, &lib_sel);
             auto lib_hierarchical_cb = Checkbox("Hierarchical layout?", &lib_hierarchical);
-            auto lib_src_i = Input(&source, ".");
-            auto lib_dest_i = Input(&dest, "e.g. libs/core");
-            auto lib_deps_i = Input(&deps_str, "comma-separated");
             auto lib_show_filters_cb = Checkbox("Configure path filters?", &show_filters);
             auto lib_filter_inc_i = Input(&filter_inc, "src,inc");
             auto lib_filter_exc_i = Input(&filter_exc, "test,legacy");
             auto lib_fm_radio = Radiobox(&fm_opt, &fm_sel);
             auto lib_filter_block = Container::Vertical({ lib_filter_inc_i, lib_filter_exc_i, lib_fm_radio });
+            auto lib_src_i = Input(&source, ".");
+            auto lib_dest_i = Input(&dest, "e.g. libs/core");
+            auto lib_deps_i = Input(&deps_str, "comma-separated");
             auto lib_use_git_cb = Checkbox("Use git source?", &use_git);
             auto lib_git_url_i = Input(&git_url, "url");
             auto lib_git_tag_i = Input(&git_tag, "tag");
@@ -586,8 +591,10 @@ public:
             auto lib_git_commit_i = Input(&git_commit, "commit");
             auto lib_git_block = Container::Vertical({ lib_git_url_i, lib_git_tag_i, lib_git_branch_i, lib_git_commit_i });
             auto lib_section = Container::Vertical({
-                lib_radio, lib_hierarchical_cb, lib_src_i, lib_dest_i, lib_deps_i, lib_show_filters_cb,
+                lib_radio, lib_hierarchical_cb,
+                lib_show_filters_cb,
                 Maybe(lib_filter_block, [&] { return show_filters; }),
+                lib_src_i, lib_dest_i, lib_deps_i,
                 lib_use_git_cb, Maybe(lib_git_block, [&] { return use_git; })
             });
 
@@ -679,6 +686,12 @@ public:
                 Maybe(layer_section, [&] { return comp_type_sel == 4; }),
                 Container::Horizontal({ add_comp_btn, done_btn })
             });
+            // Force redraw on every event so type-aware layout updates on Windows
+            // (Windows console may not request a redraw when Radiobox selection changes)
+            comp_layout |= CatchEvent([&](Event) {
+                screen.RequestAnimationFrame();
+                return false;
+            });
 
             auto comp_render = Renderer(comp_layout, [&]() -> Element {
                 Elements lines;
@@ -705,16 +718,17 @@ public:
                     }
                 } else if (comp_type_sel == 1) {
                     lines.push_back(text("Library type: ")); lines.push_back(lib_radio->Render());
+                    lines.push_back(text("Structure: "));
                     lines.push_back(lib_hierarchical_cb->Render());
-                    lines.push_back(text("Source: ")); lines.push_back(lib_src_i->Render());
-                    lines.push_back(text("Dest: ")); lines.push_back(lib_dest_i->Render());
-                    lines.push_back(text("Dependencies: ")); lines.push_back(lib_deps_i->Render());
                     lines.push_back(lib_show_filters_cb->Render());
                     if (show_filters) {
                         lines.push_back(text("Filter include: ")); lines.push_back(lib_filter_inc_i->Render());
                         lines.push_back(text("Filter exclude: ")); lines.push_back(lib_filter_exc_i->Render());
                         lines.push_back(text("Filter mode: ")); lines.push_back(lib_fm_radio->Render());
                     }
+                    lines.push_back(text("Source: ")); lines.push_back(lib_src_i->Render());
+                    lines.push_back(text("Dest: ")); lines.push_back(lib_dest_i->Render());
+                    lines.push_back(text("Dependencies: ")); lines.push_back(lib_deps_i->Render());
                     lines.push_back(lib_use_git_cb->Render());
                     if (use_git) {
                         lines.push_back(text("Git URL: ")); lines.push_back(lib_git_url_i->Render());
@@ -764,6 +778,10 @@ public:
 };
 
 }  // namespace
+
+void run_condition_editor(ftxui::ScreenInteractive& screen, std::shared_ptr<ConditionData>& cond) {
+    ConditionEditorScreen::Run(screen, cond);
+}
 
 MetadataWizard::MetadataWizard(MetadataBuilder& builder, std::string output_path)
     : builder_(builder), output_path_(std::move(output_path)) {

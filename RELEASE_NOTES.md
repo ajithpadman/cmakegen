@@ -1,5 +1,25 @@
 # Release Notes
 
+## 0.2.5
+
+### New Features
+
+- **Text-based variant conditions** — Variant components in the `add component` interactive flow now use a single text field for conditions (Jira-style syntax such as `SOC equals stm32h7` or `SOC in (stm32h7, stm32g4) AND NOT BUILD_VARIANT equals release`). The text is parsed into the existing JSON condition schema.
+- **ANTLR-based condition parser** — Integrated an ANTLR4 grammar and C++ runtime to parse condition expressions into an internal AST, with `condition_data_to_schema` converting them into the existing `Condition` schema structure.
+
+### Changes
+
+- **Variant add flow** — Replaced the older tree-based condition editor in the add-component variant screen with the text-based condition input, while preserving the existing JSON schema and generator behavior.
+- **CMake integration for ANTLR4** — Added `Antlr4Cpp.cmake` helper, wired the ANTLR4 C++ runtime via `FetchContent_MakeAvailable`, and generate lexer/parser sources during configure. Updated `README.md` prerequisites to mention the Java requirement.
+- **Tests for condition parsing** — Added `ConditionParserTest` using gtest to cover simple, list, compound (AND/OR/NOT), default, and error cases, plus a check that compound conditions map correctly to the JSON schema shape.
+
+### Compatibility
+
+- Condition **JSON schema is unchanged**; only the way interactive flows collect conditions has changed.
+- Existing metadata files continue to work; new condition expressions entered via the UI are fully compatible with the current condition evaluator.
+
+---
+
 ## 0.2.4
 
 ### Changes

@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/version-0.2.4-blue.svg)
+![Version](https://img.shields.io/badge/version-0.2.5-blue.svg)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 A C++ tool that generates a complete CMake project from JSON metadata. It supports multi-SOC, multi-ISA heterogeneous cores, multiple toolchains, CMake Presets, and Conan dependencies. Ideal for embedded projects targeting ARM, RISC-V, or other bare-metal platforms.
@@ -27,6 +27,7 @@ A C++ tool that generates a complete CMake project from JSON metadata. It suppor
 - C++17 compiler (GCC, Clang, or MSVC)
 - Ninja (recommended) or Make
 - Git (required when using `git` source for components)
+- Java Runtime (for first configure: ANTLR is used to generate the condition expression parser from `grammar/ConditionExpr.g4`; the jar is downloaded from Maven if not set via `-DANTLR4_JAR=...`)
 
 ### Build with CMake Presets (recommended)
 
@@ -622,6 +623,7 @@ Conditional subdirectory selection. Copies a source tree that contains multiple 
 #### Condition format
 
 Conditions can be leaf predicates or compound expressions using `and`, `or`, and `not` (recursive).
+Interactive flows (wizard and `add component` screen) let you enter these as a single Jira-style text expression (for example `SOC equals stm32h7` or `SOC in (stm32h7, stm32g4) AND NOT BUILD_VARIANT equals release`), which is parsed into the JSON format below.
 
 *Leaf conditions:*
 - `{ "default": true }` — fallback when no other condition matches

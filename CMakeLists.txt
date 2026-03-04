@@ -70,8 +70,31 @@ FetchContent_MakeAvailable(inja)
 # Copy templates to build directory for runtime access
 file(COPY ${CMAKE_SOURCE_DIR}/templates DESTINATION ${CMAKE_BINARY_DIR})
 
+# ANTLR4 C++ runtime (for condition expression parser)
+set(WITH_DEMO False CACHE BOOL "" FORCE)
+set(ANTLR4_INSTALL OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(antlr4_runtime
+    GIT_REPOSITORY https://github.com/antlr/antlr4
+    GIT_TAG 4.13.1
+    SOURCE_SUBDIR runtime/Cpp
+)
+FetchContent_MakeAvailable(antlr4_runtime)
+
+# ANTLR4 code generation from grammar (requires Java; downloads jar if ANTLR4_JAR not set)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+include(Antlr4Cpp)
+antlr4cpp_generate(ConditionExpr ${CMAKE_SOURCE_DIR}/grammar/ConditionExpr.g4
+    OUTPUT_DIR ${CMAKE_BINARY_DIR}/generated
+    VISITOR
+)
+set(ANTLR4_ConditionExpr_SOURCES ${ANTLR4CPP_ConditionExpr_SOURCES})
+set(ANTLR4_ConditionExpr_INCLUDE_DIR ${ANTLR4CPP_ConditionExpr_INCLUDE_DIR})
+
 # Library
 add_library(cmakegen_lib
+    src/config/config_loader.cpp
+    src/config/config_writer.cpp
+    src/config/resolver.cpp
     src/metadata/parser.cpp
     src/metadata/validator.cpp
     src/metadata/env_expander.cpp
@@ -88,13 +111,21 @@ add_library(cmakegen_lib
     src/generator/default_json_generator.cpp
     src/resolver/path_resolver.cpp
     src/interactive/metadata_builder.cpp
+    src/interactive/condition_parser.cpp
+    src/interactive/wizard.cpp
+    ${ANTLR4_ConditionExpr_SOURCES}
 )
-
-target_include_directories(cmakegen_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_include_directories(cmakegen_lib PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${ANTLR4_ConditionExpr_INCLUDE_DIR}
+    ${antlr4_runtime_SOURCE_DIR}/runtime/Cpp/runtime/src
+)
 target_link_libraries(cmakegen_lib PUBLIC
+    antlr4_static
     nlohmann_json::nlohmann_json
     fmt::fmt
     pantor::inja
+    ftxui::component
 )
 target_compile_definitions(cmakegen_lib PUBLIC
     CMAKEGEN_TEMPLATES_DIR="${CMAKE_BINARY_DIR}/templates"
@@ -117,8 +148,7 @@ endif()
 # Main executable (interactive mode always included)
 add_executable(cmakegen
     src/main.cpp
-    src/interactive/prompt_runner.cpp
-    src/interactive/wizard.cpp
+    src/interactive/add_runner.cpp
 )
 target_link_libraries(cmakegen PRIVATE cmakegen_lib CLI11::CLI11 ftxui::component)
 

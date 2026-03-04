@@ -1,6 +1,6 @@
-#include "metadata/parser.hpp"
+#include "config/config_loader.hpp"
+#include "config/resolver.hpp"
 #include "metadata/validator.hpp"
-#include "metadata/env_expander.hpp"
 #include "resolver/path_resolver.hpp"
 #include "resolver/git_cloner.hpp"
 #include "copy/copy_engine.hpp"
@@ -8,107 +8,80 @@
 #include "generator/toolchain_generator.hpp"
 #include "generator/preset_generator.hpp"
 #include "generator/conan_generator.hpp"
-#include "generator/default_json_generator.hpp"
-#include "interactive/prompt_runner.hpp"
-#include "interactive/metadata_builder.hpp"
+#include "interactive/add_runner.hpp"
 #include <CLI/CLI.hpp>
 #include <iostream>
-#include <fstream>
 #include <filesystem>
 
 namespace fs = std::filesystem;
 
 int main(int argc, char* argv[]) {
     CLI::App app{"CMake project generator for bare-metal embedded systems"};
-    app.footer("Metadata file must be JSON. Use 'init' or --interactive for an interactive wizard, or --default-json to print a template.");
+    app.footer("Use 'add' to create JSON metadata interactively, then 'generate' to validate and scaffold.");
 
-    std::string metadata_file;
+    std::string metadata_folder = "./metadata";
     std::string output_dir = "./output";
-    std::string default_json_output;
-    std::string interactive_output;
-    bool validate_only = false;
-    bool dry_run = false;
 
-    app.add_option("metadata,-m,--metadata", metadata_file, "Metadata file (JSON)")
-        ->required(false);
+    auto* add_cmd = app.add_subcommand("add", "Add one entity (interactive). Writes JSON to metadata folder.");
+    add_cmd->add_option("-o,--output", metadata_folder, "Metadata folder (default: ./metadata)")
+        ->default_val("./metadata");
 
-    app.add_option("-o,--output", output_dir, "Output directory for scaffolded project")
+    std::string add_entity;
+    add_cmd->add_option("entity", add_entity,
+            "project | soc | board | toolchain | isa-variant | build_type | component | conanfile | cmake-preset")
+        ->required();
+
+    auto* gen_cmd = app.add_subcommand("generate", "Load metadata folder, validate, resolve, and generate full source tree.");
+    gen_cmd->add_option("-f,--folder,folder", metadata_folder, "Path to folder containing JSON metadata files")
+        ->required();
+    gen_cmd->add_option("-o,--output", output_dir, "Output directory for scaffolded project")
         ->default_val("./output");
-
-    app.add_flag("--validate-only", validate_only, "Only validate schema, don't scaffold");
-
-    app.add_flag("--dry-run", dry_run, "Print actions without executing");
-
-    auto* init_cmd = app.add_subcommand("init", "Interactive metadata JSON wizard");
-    init_cmd->add_option("-o,--output", interactive_output, "Output file path")->default_val("metadata.json");
-    auto* interactive_opt = app.add_option("--interactive,-i", interactive_output,
-                   "Interactive mode: build metadata JSON via wizard. Optional output path.")
-        ->expected(0, 1)
-        ->default_str("");
-
-    auto* default_opt = app.add_option("--default-json", default_json_output,
-                   "Generate default JSON template. Write to file if path given, else stdout")
-        ->expected(0, 1)
-        ->default_str("");
 
     CLI11_PARSE(app, argc, argv);
 
-    if (init_cmd->parsed() || interactive_opt->count() > 0) {
-        scaffolder::MetadataBuilder builder;
-        std::string out_path = interactive_output.empty() ? "metadata.json" : interactive_output;
-        if (scaffolder::run_interactive(builder, out_path)) {
-            std::cout << "Metadata written to " << out_path << "\n";
+    if (add_cmd->parsed()) {
+        fs::path folder = metadata_folder;
+        std::filesystem::create_directories(folder);
+
+        bool ok = false;
+        if (add_entity == "project") ok = scaffolder::run_add_project(folder);
+        else if (add_entity == "soc") ok = scaffolder::run_add_soc(folder);
+        else if (add_entity == "board") ok = scaffolder::run_add_board(folder);
+        else if (add_entity == "toolchain") ok = scaffolder::run_add_toolchain(folder);
+        else if (add_entity == "isa-variant") ok = scaffolder::run_add_isa_variant(folder);
+        else if (add_entity == "build_type") ok = scaffolder::run_add_build_variant(folder);
+        else if (add_entity == "component") ok = scaffolder::run_add_component(folder);
+        else if (add_entity == "conanfile") ok = scaffolder::run_add_conanfile(folder);
+        else if (add_entity == "cmake-preset") ok = scaffolder::run_add_cmake_preset(folder);
+        else {
+            std::cerr << "Unknown entity: " << add_entity << "\n";
+            return 1;
+        }
+        if (ok) {
+            std::cout << "Written to " << folder.string() << "\n";
             return 0;
         }
-        std::cerr << "Interactive mode cancelled or failed.\n";
+        std::cerr << "Add cancelled or failed.\n";
         return 1;
     }
 
-    if (default_opt->count() > 0) {
-        std::ostream* out = &std::cout;
-        std::ofstream file_out;
-        if (!default_json_output.empty()) {
-            file_out.open(default_json_output);
-            if (!file_out) {
-                std::cerr << "Error: Cannot write to " << default_json_output << "\n";
-                return 1;
-            }
-            out = &file_out;
-        }
-        scaffolder::write_default_json(*out);
-        if (file_out.is_open()) {
-            std::cout << "Default JSON template written to " << default_json_output << "\n";
-        }
-        return 0;
-    }
+    if (gen_cmd->parsed()) {
+        try {
+            fs::path meta_path(metadata_folder);
+            scaffolder::ConfigLoader loader;
+            scaffolder::Metadata metadata = loader.load(meta_path);
 
-    if (metadata_file.empty()) {
-        std::cerr << app.help();
-        return 1;
-    }
+            scaffolder::Validator validator;
+            validator.validate(metadata);
 
-    try {
-        scaffolder::Parser parser;
-        scaffolder::Metadata metadata = parser.parse_file(metadata_file);
+            scaffolder::resolve(metadata);
 
-        scaffolder::Validator validator;
-        validator.validate(metadata);
-
-        if (validate_only) {
-            std::cout << "Validation passed.\n";
-            return 0;
-        }
-
-        fs::path output_path(output_dir);
-        fs::path base_dir = fs::path(metadata_file).parent_path();
-
-        if (!dry_run) {
+            fs::path output_path(output_dir);
             fs::create_directories(output_path);
-        }
+            fs::path base_dir = meta_path.is_absolute() ? meta_path : fs::absolute(meta_path);
 
-        scaffolder::PathResolver path_resolver(base_dir);
+            scaffolder::PathResolver path_resolver(base_dir);
 
-        if (!dry_run) {
             fs::path cache_dir = output_path / ".cmakegen_cache";
             scaffolder::GitCloner git_cloner(cache_dir);
             for (const auto& comp : metadata.source_tree.components) {
@@ -122,40 +95,38 @@ int main(int argc, char* argv[]) {
             for (const auto& comp : metadata.source_tree.components) {
                 copy_engine.copy_component(comp);
             }
-        }
 
-        scaffolder::CmakeGenerator cmake_gen(metadata, path_resolver, output_path);
-        scaffolder::ToolchainGenerator toolchain_gen(metadata);
-        scaffolder::PresetGenerator preset_gen(metadata);
-        scaffolder::ConanGenerator conan_gen(metadata);
+            scaffolder::CmakeGenerator cmake_gen(metadata, path_resolver, output_path);
+            scaffolder::ToolchainGenerator toolchain_gen(metadata);
+            scaffolder::PresetGenerator preset_gen(metadata);
+            scaffolder::ConanGenerator conan_gen(metadata);
 
-        if (!dry_run) {
             cmake_gen.generate_all();
             toolchain_gen.generate_all(output_path);
             preset_gen.generate(output_path);
             conan_gen.generate(output_path);
 
-            fs::path cache_dir = output_path / ".cmakegen_cache";
             if (fs::exists(cache_dir)) {
                 fs::remove_all(cache_dir);
             }
-        } else {
-            std::cout << "Dry run: would scaffold to " << output_path << "\n";
-        }
 
-        std::cout << "Scaffolding complete.\n";
-        return 0;
-    } catch (const scaffolder::ParseError& e) {
-        std::cerr << "Parse error: " << e.what() << "\n";
-        return 1;
-    } catch (const scaffolder::ValidationError& e) {
-        std::cerr << "Validation error: " << e.what() << "\n";
-        return 1;
-    } catch (const scaffolder::EnvExpandError& e) {
-        std::cerr << "Environment expansion error: " << e.what() << "\n";
-        return 1;
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << "\n";
-        return 1;
+            std::cout << "Scaffolding complete: " << output_path.string() << "\n";
+            return 0;
+        } catch (const scaffolder::ConfigLoadError& e) {
+            std::cerr << "Config load error: " << e.what() << "\n";
+            return 1;
+        } catch (const scaffolder::ResolveError& e) {
+            std::cerr << "Resolve error: " << e.what() << "\n";
+            return 1;
+        } catch (const scaffolder::ValidationError& e) {
+            std::cerr << "Validation error: " << e.what() << "\n";
+            return 1;
+        } catch (const std::exception& e) {
+            std::cerr << "Error: " << e.what() << "\n";
+            return 1;
+        }
     }
+
+    std::cerr << app.help();
+    return 1;
 }
